@@ -1,13 +1,19 @@
 from fastapi import FastAPI
+from app.config import settings
+from app.routers.health import router as health_router
+from app.routers.resume import router as resume_router
 
 app = FastAPI(
-    title="AI Resume Analyzer API",
-    version="1.0.0",
-    description="Backend API for AI Resume Analyzer"
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION
 )
 
+app.include_router(health_router)
+app.include_router(resume_router)
+
+
 @app.get("/")
-def root():
+def home():
     return {
-        "message": "AI Resume Analyzer Backend is running!"
+        "message": f"{settings.APP_NAME} Backend is running!"
     }
