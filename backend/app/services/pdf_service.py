@@ -1,4 +1,5 @@
 import fitz  # PyMuPDF
+from .text_cleaner import clean_resume_text
 
 
 def extract_text_from_pdf(file_path: str) -> str:
@@ -13,6 +14,8 @@ def extract_text_from_pdf(file_path: str) -> str:
     for page in pdf:
         text += page.get_text()
 
-    pdf.close()
 
-    return text
+    pdf.close()
+    cleaned_text = clean_resume_text(text)
+
+    return cleaned_text
