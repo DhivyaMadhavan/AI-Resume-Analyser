@@ -5,6 +5,10 @@ import os
 from app.services.pdf_service import extract_text_from_pdf
 from app.services.text_cleaner import clean_resume_text
 from app.services.hash_service import generate_resume_hash
+from app.services.cache_service import (
+    get_cached_analysis,
+    cache_analysis
+)
 
 router = APIRouter(
     prefix="/api/v1/resume",
@@ -43,12 +47,27 @@ async def upload_resume(file: UploadFile = File(...)):
         extracted_text = extract_text_from_pdf(temp_file_path)
         cleaned_text = clean_resume_text(extracted_text)
         resume_hash = generate_resume_hash(cleaned_text)
+        cached_result = get_cached_analysis(resume_hash)
+       
+        if cached_result:
+            return {
+                "source": "redis_cache",
+                **cached_result
+            }
+
+        analysis = {
+            "filename": file.filename,
+            "resume_hash": resume_hash,
+            "pages_text_length": len(cleaned_text),
+            "preview": cleaned_text[:1000],
+            "message": "Dummy ATS Analysis"
+        }
+
+        cache_analysis(resume_hash,analysis)       
 
         return {
-            "filename": file.filename,
-            "resume_hash":resume_hash,
-            "pages_text_length": len(cleaned_text),
-            "preview": cleaned_text[:1000]
+            "source": "fresh_analysis",
+            **analysis
         }
 
     finally:
