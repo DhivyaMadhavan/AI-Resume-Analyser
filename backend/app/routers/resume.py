@@ -3,6 +3,8 @@ import tempfile
 import os
 
 from app.services.pdf_service import extract_text_from_pdf
+from app.services.text_cleaner import clean_resume_text
+from app.services.hash_service import generate_resume_hash
 
 router = APIRouter(
     prefix="/api/v1/resume",
@@ -39,11 +41,14 @@ async def upload_resume(file: UploadFile = File(...)):
 
         # Extract text
         extracted_text = extract_text_from_pdf(temp_file_path)
+        cleaned_text = clean_resume_text(extracted_text)
+        resume_hash = generate_resume_hash(cleaned_text)
 
         return {
             "filename": file.filename,
-            "pages_text_length": len(extracted_text),
-            "preview": extracted_text[:1000]
+            "resume_hash":resume_hash,
+            "pages_text_length": len(cleaned_text),
+            "preview": cleaned_text[:1000]
         }
 
     finally:
