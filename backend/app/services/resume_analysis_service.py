@@ -9,18 +9,19 @@ def process_resume(filename: str, cleaned_text: str) -> dict:
 
     cached_result = get_cached_analysis(resume_hash)
     if cached_result:
-        return {
-            "source": "redis_cache",
-            **cached_result
-        }
+        cached_result["source"] = "redis"
+        cached_result["metadata"]["cached"] = True
+
+        return cached_result
 
     mongo_result = get_analysis_by_hash(resume_hash)
     if mongo_result:
+        mongo_result["source"] = "mongodb"
+        mongo_result["metadata"]["cached"] = False
+
         cache_analysis(resume_hash, mongo_result)
-        return {
-            "source": "mongodb",
-            **mongo_result
-        }
+
+        return mongo_result
 
     resume_analysis = analyze_resume(cleaned_text)
 

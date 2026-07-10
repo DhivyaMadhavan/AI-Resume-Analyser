@@ -1,8 +1,9 @@
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 from pydantic import BaseModel, Field
 
 from datetime import datetime, UTC
+from app.models.enums import AnalysisMode
 
 
 # ===========================
@@ -156,7 +157,29 @@ class AnalysisMetadata(BaseModel):
     processing_time_ms: int = 0
     timestamp: datetime
 
+class MatchingResult(BaseModel):
+    match_score: int = 0
+
+    matched_skills: List[str] = Field(default_factory=list)
+
+    missing_skills: List[str] = Field(default_factory=list)
+
+    missing_keywords: List[str] = Field(default_factory=list)
+
+    strengths: List[str] = Field(default_factory=list)
+
+    weaknesses: List[str] = Field(default_factory=list)
+
+    tailored_recommendations: List[str] = Field(default_factory=list)
+
+    interview_readiness: str = ""
+
+class MatchingResponse(BaseModel):
+    mode: AnalysisMode
+    result: MatchingResult
+
 
 class ResumeResponse(BaseModel):
     analysis: ResumeAnalysis
+    matching: MatchingResponse | None = None
     metadata: AnalysisMetadata    
