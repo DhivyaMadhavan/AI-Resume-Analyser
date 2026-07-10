@@ -1,17 +1,16 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 import tempfile
 import os
-
 from app.services.pdf_service import extract_text_from_pdf
 from app.services.text_cleaner import clean_resume_text
-from app.services.hash_service import generate_resume_hash
-from app.services.cache_service import (get_cached_analysis,cache_analysis)
-from app.services.analysis_service import analyze_resume
+from app.services.resume_analysis_service import process_resume
 
 router = APIRouter(
     prefix="/api/v1/resume",
     tags=["Resume"]
 )
+
+
 
 
 @router.post("/upload")
@@ -44,30 +43,12 @@ async def upload_resume(file: UploadFile = File(...)):
         # Extract text
         extracted_text = extract_text_from_pdf(temp_file_path)
         cleaned_text = clean_resume_text(extracted_text)
-        resume_hash = generate_resume_hash(cleaned_text)
-        cached_result = get_cached_analysis(resume_hash)
-       
-        if cached_result:
-            return {
-                "source": "redis_cache",
-                **cached_result
-            }
-        resume_analysis = analyze_resume(cleaned_text)
+        result = process_resume(
+                filename=file.filename,
+                cleaned_text=cleaned_text
+            )
 
-        analysis = {
-            "filename": file.filename,
-            "resume_hash": resume_hash,
-            "pages_text_length": len(cleaned_text),
-            "preview": cleaned_text[:1000],
-            "analysis": resume_analysis.model_dump()
-        }
-
-        cache_analysis(resume_hash,analysis)       
-
-        return {
-            "source": "fresh_analysis",
-            **analysis
-        }
+        return result
 
     finally:
         # Always delete the temporary file
