@@ -8,19 +8,15 @@ def get_cached_analysis(resume_hash: str):
     Returns:
         dict | None
     """
-
-    cached_data = redis_client.get(resume_hash)
+    key = f"resume:{resume_hash}"
+    cached_data = redis_client.get(key)
 
     if cached_data is None:
         return None
 
     return json.loads(cached_data)
 
-def cache_analysis(
-    resume_hash: str,
-    analysis: dict,
-    expiration: int = 3600
-):
+def cache_analysis(resume_hash: str, analysis: dict, expiration: int = 3600):
     """
     Store resume analysis in Redis.
 
@@ -29,9 +25,10 @@ def cache_analysis(
         analysis: Analysis dictionary
         expiration: Cache TTL in seconds
     """
-
+    
+    key = f"resume:{resume_hash}"
     redis_client.set(
-        resume_hash,
+        key,
         json.dumps(analysis),
         ex=expiration
     )
