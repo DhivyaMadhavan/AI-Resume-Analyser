@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from pydantic import BaseModel, Field
 
@@ -56,6 +56,21 @@ class TokenUsage(BaseModel):
     reasoning_tokens: int = 0
     total_tokens: int = 0 
     latency_ms: int = 0
+
+
+
+
+class ATSSection(BaseModel):
+    score: int
+    max_score: int
+    remarks: List[str]
+
+
+class ATSScore(BaseModel):
+    overall_score: int
+    max_score: int
+    breakdown: Dict[str, ATSSection]
+    recommendations: List[str]    
 
 
 # ===========================
@@ -132,6 +147,8 @@ class ResumeAnalysis(BaseModel):
     strengths: List[str] = Field(default_factory=list)
 
     improvements: List[str] = Field(default_factory=list)
+
+    ats: ATSScore | None = None
 
 class AnalysisMetadata(BaseModel):
     usage: TokenUsage   

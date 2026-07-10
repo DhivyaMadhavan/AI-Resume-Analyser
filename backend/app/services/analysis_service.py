@@ -8,6 +8,7 @@ from app.models.analysis import (
 from app.services.personal_service import extract_personal_details
 from app.services.llm_service import analyze_with_llm
 from datetime import datetime, UTC
+from app.services.ats.ats_service import calculate_ats_score
 
 
 def analyze_resume(text: str) -> ResumeAnalysis:
@@ -31,29 +32,41 @@ def analyze_resume(text: str) -> ResumeAnalysis:
     usage = llm_response.usage
 
     # Merge both responses
-    return ResumeResponse(
-            analysis=ResumeAnalysis(
-                personal_details=regex_analysis.personal_details,
+    merged_analysis = ResumeAnalysis(
 
-                candidate=Candidate(
-                    name=regex_analysis.candidate.name,
-                    summary=ai_analysis.candidate.summary,
-                ),
+            personal_details=regex_analysis.personal_details,
 
-                skills=ai_analysis.skills,
-                education=ai_analysis.education,
-                experience=ai_analysis.experience,
-                experience_summary=ai_analysis.experience_summary,
-                projects=ai_analysis.projects,
-                certifications=ai_analysis.certifications,
-                strengths=ai_analysis.strengths,
-                improvements=ai_analysis.improvements,
+            candidate=Candidate(
+                name=regex_analysis.candidate.name,
+                summary=ai_analysis.candidate.summary,
             ),
 
-            metadata=AnalysisMetadata(
-                usage=usage,                
-                cached=False,
-                processing_time_ms=usage.latency_ms,
-                timestamp=datetime.now(UTC),
-            ),
+            skills=ai_analysis.skills,
+
+            education=ai_analysis.education,
+
+            experience=ai_analysis.experience,
+
+            experience_summary=ai_analysis.experience_summary,
+
+            projects=ai_analysis.projects,
+
+            certifications=ai_analysis.certifications,
+
+            strengths=ai_analysis.strengths,
+
+            improvements=ai_analysis.improvements,
         )
+    merged_analysis.ats = calculate_ats_score(merged_analysis)
+
+    return ResumeResponse(
+
+        analysis=merged_analysis,
+
+        metadata=AnalysisMetadata(
+            usage=usage,
+            cached=False,
+            processing_time_ms=usage.latency_ms,
+            timestamp=datetime.now(UTC),
+        ),
+    )
