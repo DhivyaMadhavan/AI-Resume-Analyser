@@ -1,22 +1,28 @@
 import json
+import logging
+
+from redis.exceptions import RedisError
 
 from app.database.redis import redis_client
 
+logger = logging.getLogger(__name__)
 
 def get_cached_matching(matching_hash: str):
 
-    key = f"matching:{matching_hash}"
+    key = f"matching:{matching_hash}"    
 
-    print(f"Reading key: {key}")
+    try:
 
-    cached = redis_client.get(key)
+        cached = redis_client.get(key)        
 
-    print("Found:", cached is not None)
+        if cached is None:
+            return None
 
-    if cached is None:
+        return json.loads(cached)
+
+    except RedisError as e:    
+        logger.exception("[Redis] Unable to retrieve cached matching")    
         return None
-
-    return json.loads(cached)
 
 
 def cache_matching(
@@ -25,12 +31,15 @@ def cache_matching(
     expiry: int = 3600
 ):
 
-    key = f"matching:{matching_hash}"
+    key = f"matching:{matching_hash}"   
 
-    print(f"Saving key: {key}")
+    try:
 
-    redis_client.setex(
-        key,
-        expiry,
-        json.dumps(result)
-    )
+        redis_client.setex(
+            key,
+            expiry,
+            json.dumps(result)
+        )
+
+    except RedisError as e:
+        logger.exception(f"[Redis] Unable to cache matching: {e}")

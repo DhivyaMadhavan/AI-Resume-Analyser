@@ -38,7 +38,7 @@ def remove_trailing_spaces(text: str) -> str:
     return "\n".join(lines)
 
 
-def clean_resume_text(text: str) -> str:
+def clean_text(text: str) -> str:
     """
     Complete cleaning pipeline.
     """
@@ -50,6 +50,32 @@ def clean_resume_text(text: str) -> str:
     text = remove_trailing_spaces(text)
 
     text = remove_extra_spaces(text)
+
+    text = remove_extra_blank_lines(text)
+
+    return text.strip()
+
+def clean_job_description(text: str) -> str:
+    text = clean_text(text)
+
+    # Remove common metadata lines
+    patterns = [
+        r"(?im)^apply now\s*$",
+        r"(?im)^share.*$",
+        r"(?im)^save.*$",
+        r"(?im)^location:.*$",
+        r"(?im)^posted.*$",
+        r"(?im)^job id:.*$",
+        r"(?im)^equal opportunity employer.*$",
+        r"(?im)^privacy policy.*$",
+        r"(?im)^employment type:.*$",
+        r"(?im)^experience:.*$",
+        r"(?im)^salary:.*$",
+        r"(?im)^notice period:.*$",
+    ]
+
+    for pattern in patterns:
+        text = re.sub(pattern, "", text)
 
     text = remove_extra_blank_lines(text)
 

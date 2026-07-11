@@ -1,4 +1,7 @@
-import { useLocation } from "react-router-dom";
+import Loader from "../components/Loader";
+import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 import ATSCard from "../components/dashboard/ATSCard";
 import SummaryCard from "../components/dashboard/SummaryCard";
@@ -10,44 +13,135 @@ import WeaknessesCard from "../components/dashboard/WeaknessesCard";
 import RecommendationCard from "../components/dashboard/RecommendationCard";
 import JDMatchCard from "../components/dashboard/JDMatchCard";
 import RoleMatchCard from "../components/dashboard/RoleMatchCard";
+import AnalysisInfo from "../components/dashboard/AnalysisInfo";
+
+import { generatePDFReport } from "../utils/reportGenerator";
 
 const Dashboard = () => {
-  const location = useLocation();
+  const { resume_hash } = useParams();
 
-  const analysis = location.state?.analysis;
-  const mode = location.state?.mode;
+  const [resumeData, setResumeData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  console.log("Dashboard State:", location.state);
-  console.log("Analysis:", analysis);
-  
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchAnalysis = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8000/api/v1/resume/${resume_hash}`
+        );
+
+        
+
+        setResumeData(response.data);
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load resume analysis.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalysis();
+  }, [resume_hash]);
+
+  if (loading) {
+    return <Loader />;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-600">
+        {error}
+      </div>
+    );
+  }
+
+  const analysis = resumeData?.analysis;
+  const matching = resumeData?.matching;
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <h1 className="text-3xl font-bold mb-6">
-        AI Resume Dashboard
-      </h1>
+    <div className="min-h-screen bg-gray-100 p-6 text-gray-800 text-[13px] leading-relaxed">
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            AI Resume Dashboard
+          </h1>
+        </div>
 
-        <ATSCard analysis={analysis} />
-        <SummaryCard analysis={analysis} />
+        <div className="flex gap-3">
+          <button
+            onClick={() => generatePDFReport(resumeData)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-medium shadow-sm transition"
+          >
+            Download Report
+          </button>
 
-        <PersonalInfoCard analysis={analysis} />
+          <button
+            onClick={() => navigate("/")}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-medium shadow-sm transition"
+          >
+            Upload Another
+          </button>
+        </div>
+      </div>
 
-        <ExperienceCard analysis={analysis} />
+      {/* Processing Information */}
+      <AnalysisInfo resumeData={resumeData} />
 
-        <SkillsCard analysis={analysis} />
+      {/* Dashboard Cards */}
+      <div className="columns-1 md:columns-2 gap-6 space-y-6 [column-fill:_balance]">
 
-        <StrengthsCard analysis={analysis} />
+        <div className="break-inside-avoid bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+          <ATSCard analysis={analysis} />
+        </div>
 
-        <WeaknessesCard analysis={analysis} />
+        {matching?.mode && (
+          <div className="break-inside-avoid bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+            {matching.mode === "jd" && (
+              <JDMatchCard matching={matching} />
+            )}
 
-        <RecommendationCard analysis={analysis} />
- 
-        {mode === "jd" && <JDMatchCard />}
+            {matching.mode === "role" && (
+              <RoleMatchCard matching={matching} />
+            )}
+          </div>
+        )}
 
-        {mode === "role" && <RoleMatchCard />}
+        <div className="break-inside-avoid bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+          <SummaryCard analysis={analysis} />
+        </div>
+
+        <div className="break-inside-avoid bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+          <PersonalInfoCard analysis={analysis} />
+        </div>
+
+        <div className="break-inside-avoid bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+          <ExperienceCard analysis={analysis} />
+        </div>
+
+        <div className="break-inside-avoid bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+          <SkillsCard analysis={analysis} />
+        </div>
+
+        <div className="break-inside-avoid bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+          <StrengthsCard analysis={analysis} />
+        </div>
+
+        <div className="break-inside-avoid bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+          <WeaknessesCard analysis={analysis} />
+        </div>
+
+        <div className="break-inside-avoid bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+          <RecommendationCard analysis={analysis} />
+        </div>
 
       </div>
+
     </div>
   );
 };

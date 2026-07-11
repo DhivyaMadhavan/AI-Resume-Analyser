@@ -29,9 +29,7 @@ def _run_matching(prompt: str) -> MatchingResult:
             ),
         )
 
-        elapsed_ms = round((time.perf_counter() - start) * 1000)
-
-        print(f"Matching latency: {elapsed_ms} ms")
+        elapsed_ms = round((time.perf_counter() - start) * 1000)        
 
         return MatchingResult.model_validate_json(response.text)
 

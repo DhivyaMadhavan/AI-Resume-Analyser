@@ -8,19 +8,27 @@ def save_analysis(document: dict):
 
     now = datetime.now(timezone.utc)
 
-    document["updated_at"] = now
-    document["analysis_version"] = "1.0"
+    # Make a copy so original result is not modified
+    update_document = document.copy()
+
+    update_document["updated_at"] = now
+    update_document["analysis_version"] = "1.0"
+
+    # Remove fields handled separately by MongoDB
+    update_document.pop("created_at", None)
 
     resume_collection.update_one(
-        {"resume_hash": document["resume_hash"]},
+        {"resume_hash": update_document["resume_hash"]},
         {
-            "$set": document,
+            "$set": update_document,
             "$setOnInsert": {
                 "created_at": now
             }
         },
         upsert=True
     )
+
+    return update_document["resume_hash"]
 
 def get_analysis_by_hash(resume_hash: str):
     """

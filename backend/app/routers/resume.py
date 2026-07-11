@@ -1,5 +1,8 @@
 import os
 import tempfile
+from datetime import datetime, UTC
+from app.models.enums import AnalysisSource
+
 
 from fastapi import (
     APIRouter,
@@ -10,7 +13,7 @@ from fastapi import (
 )
 from app.models.enums import AnalysisMode
 from app.services.pdf_service import extract_text_from_pdf
-from app.services.text_cleaner import clean_resume_text
+
 from app.services.resume_analysis_service import process_resume
 from app.services.matching_service import (
     match_resume_with_jd,
@@ -22,6 +25,15 @@ from app.services.matching_cache_service import (
     get_cached_matching,
     cache_matching,
 )
+from app.services.mongo_service import (
+    save_analysis,
+    get_analysis_by_hash
+
+)
+from app.services.text_cleaner import (
+    clean_text,
+    clean_job_description,
+)
 
 
 
@@ -29,6 +41,16 @@ router = APIRouter(
     prefix="/api/v1/resume",
     tags=["Resume"]
 )
+
+def save_and_return(result):
+
+    resume_hash = save_analysis(result)
+
+    result["analysis_id"] = resume_hash
+
+    return result
+
+
 
 
 @router.post("/upload")
@@ -69,6 +91,12 @@ async def upload_resume(
             status_code=400,
             detail="Role is required for role matching."
         )
+    # -----------------------------
+    # Clean Job Description
+    # -----------------------------
+    if mode == AnalysisMode.jd:        
+
+        job_description = clean_job_description(job_description)        
 
     temp_file_path = None
 
@@ -89,7 +117,7 @@ async def upload_resume(
 
         extracted_text = extract_text_from_pdf(temp_file_path)
 
-        cleaned_text = clean_resume_text(extracted_text)
+        cleaned_text = clean_text(extracted_text)
 
         if not cleaned_text.strip():
             raise HTTPException(
@@ -111,7 +139,7 @@ async def upload_resume(
         # -----------------------------
 
         if mode == AnalysisMode.resume:
-            return result
+            return save_and_return(result)
 
         # -----------------------------
         # JD Matching
@@ -124,18 +152,31 @@ async def upload_resume(
                 "jd",
                 job_description
             )
-
+             
             cached_match = get_cached_matching(matching_hash)
 
             if cached_match:
 
-                result["matching"] = {
-                    "mode": "jd",
-                    "source": "redis",
-                    "result": cached_match
+                result["matching"] =  {
+                    "mode": AnalysisMode.jd,
+                    "metadata": {
+                        "usage": {
+                            "model": "",
+                            "input_tokens": 0,
+                            "output_tokens": 0,
+                            "reasoning_tokens": 0,
+                            "total_tokens": 0,
+                            "latency_ms": 0,
+                        },
+                        "cached": True,
+                        "processing_time_ms": 0,
+                        "timestamp": datetime.now(UTC),
+                        "source": AnalysisSource.redis,
+                    },
+                    "result": cached_match,
                 }
 
-                return result
+                return save_and_return(result)
 
 
             jd_result = match_resume_with_jd(
@@ -151,12 +192,25 @@ async def upload_resume(
             )
 
             result["matching"] = {
-                "mode": "jd",
-                "source": "gemini",
-                "result": match_data
+                "mode": AnalysisMode.jd,
+                "metadata": {
+                    "usage": {
+                        "model": "gemini-2.5-flash",
+                        "input_tokens": 0,
+                        "output_tokens": 0,
+                        "reasoning_tokens": 0,
+                        "total_tokens": 0,
+                        "latency_ms": 0,
+                    },
+                    "cached": False,
+                    "processing_time_ms": 0,
+                    "timestamp": datetime.now(UTC),
+                    "source": AnalysisSource.fresh,
+                },
+                "result": match_data,
             }
 
-            return result
+            return save_and_return(result)
 
         # -----------------------------
         # Role Matching
@@ -169,23 +223,32 @@ async def upload_resume(
                 "role",
                 role
             )
-            print("=" * 50)
-            print("ROLE:", repr(role))
-            print("MATCHING HASH:", matching_hash)
-            print("=" * 50)
+            
 
             cached_match = get_cached_matching(matching_hash)
             
 
             if cached_match:
 
-                result["matching"] = {
-                    "mode": "role",
-                    "source": "redis",
-                    "result": cached_match
-                }
-
-                return result
+                result["matching"] =  {
+                        "mode": AnalysisMode.role,
+                        "metadata": {
+                            "usage": {
+                                "model": "",
+                                "input_tokens": 0,
+                                "output_tokens": 0,
+                                "reasoning_tokens": 0,
+                                "total_tokens": 0,
+                                "latency_ms": 0,
+                            },
+                            "cached": True,
+                            "processing_time_ms": 0,
+                            "timestamp": datetime.now(UTC),
+                            "source": AnalysisSource.redis,
+                        },
+                        "result": cached_match,
+                    }
+                return save_and_return(result)
 
 
             role_result = match_resume_with_role(
@@ -201,12 +264,24 @@ async def upload_resume(
             )
 
             result["matching"] = {
-                "mode": "role",
-                "source": "gemini",
-                "result": match_data
+                "mode": AnalysisMode.role,
+                "metadata": {
+                    "usage": {
+                        "model": "gemini-2.5-flash",
+                        "input_tokens": 0,
+                        "output_tokens": 0,
+                        "reasoning_tokens": 0,
+                        "total_tokens": 0,
+                        "latency_ms": 0,
+                    },
+                    "cached": False,
+                    "processing_time_ms": 0,
+                    "timestamp": datetime.now(UTC),
+                    "source": AnalysisSource.fresh,
+                },
+                "result": match_data,
             }
-
-            return result
+            return save_and_return(result)
         raise HTTPException(
             status_code=400,
             detail="Invalid analysis mode"
@@ -215,3 +290,16 @@ async def upload_resume(
 
         if temp_file_path and os.path.exists(temp_file_path):
             os.remove(temp_file_path)
+
+@router.get("/{resume_hash}")
+def get_resume_analysis(resume_hash: str):
+
+    result = get_analysis_by_hash(resume_hash)
+
+    if not result:
+        raise HTTPException(
+            status_code=404,
+            detail="Analysis not found"
+        )
+
+    return result            

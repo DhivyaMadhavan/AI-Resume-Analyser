@@ -22,7 +22,7 @@ export default function useResumeAnalysis() {
 
         // Resume validation
         if (!file) {
-            setError("Please upload a resume.");
+            setError("Please upload a valid PDF resume.");
             return;
         }
 
@@ -54,29 +54,42 @@ export default function useResumeAnalysis() {
                 jobDescription,
                 role
             );
-
-            navigate("/dashboard", {
-                state: result,
-            });
+            
+            navigate(`/dashboard/${result.resume_hash}`);
 
         }
         catch (err) {
+            console.error("UPLOAD ERROR:", err);
+            console.error("RESPONSE:", err.response);
 
-            if (err.response) {
+            if (!err.response) {
 
                 setError(
-                    err.response.data.detail
+                    "Server is unavailable. Please try again later."
+                );
+
+            }
+            else if (err.response.status === 400) {
+
+                setError(
+                    "Please upload a valid PDF resume."
+                );
+
+            }
+            else if (err.response.status === 500) {
+
+                setError(
+                    "AI analysis failed. Please retry."
                 );
 
             }
             else {
 
                 setError(
-                    "Unable to connect to server."
+                    "Something went wrong. Please try again."
                 );
 
             }
-
         }
         finally {
 

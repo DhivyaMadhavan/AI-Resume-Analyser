@@ -2,20 +2,46 @@ version: "3.9"
 
 services:
 
+  frontend:
+    build: ./frontend
+    container_name: resume-frontend
+
+    ports:
+      - "5173:5173"
+
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    container_name: resume-backend
+
+    ports:
+      - "8000:8000"
+
+    env_file:
+      - backend/.env
+
+    depends_on:
+      - resume-mongodb
+      - resume-redis
+
   resume-mongodb:
     image: mongo:8
+
     container_name: resume-mongodb
 
     ports:
       - "27017:27017"
 
+    restart: unless-stopped
+
     volumes:
       - mongodb_data:/data/db
 
-    restart: unless-stopped
-
   resume-redis:
     image: redis:7
+
     container_name: resume-redis
 
     ports:

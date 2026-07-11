@@ -1,9 +1,7 @@
 from typing import List, Optional, Dict, Any
-
 from pydantic import BaseModel, Field
-
 from datetime import datetime, UTC
-from app.models.enums import AnalysisMode
+from app.models.enums import AnalysisMode, AnalysisSource
 
 
 # ===========================
@@ -26,6 +24,10 @@ class Education(BaseModel):
 class Experience(BaseModel):
     company: Optional[str] = None
     designation: Optional[str] = None
+
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
     duration: Optional[str] = None
     description: Optional[str] = None
 
@@ -156,6 +158,7 @@ class AnalysisMetadata(BaseModel):
     cached: bool = False
     processing_time_ms: int = 0
     timestamp: datetime
+    source: AnalysisSource | None = None
 
 class MatchingResult(BaseModel):
     match_score: int = 0
@@ -176,6 +179,7 @@ class MatchingResult(BaseModel):
 
 class MatchingResponse(BaseModel):
     mode: AnalysisMode
+    metadata: AnalysisMetadata
     result: MatchingResult
 
 

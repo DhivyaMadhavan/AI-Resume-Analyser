@@ -1,25 +1,27 @@
 import DashboardCard from "./DashboardCard";
 
 const ATSCard = ({ analysis }) => {
+
   const ats = analysis?.ats;
 
   if (!ats) {
     return (
-      <div className="bg-white rounded-xl shadow-md p-6 min-h-52">
-        ATS data unavailable
-      </div>
+      <DashboardCard title="ATS Score">
+        <p className="text-gray-500">
+          ATS data unavailable
+        </p>
+      </DashboardCard>
     );
   }
 
   const score = ats.overall_score;
-  const maxScore = ats.max_score;
 
   const scoreColor =
     score >= 80
-      ? "text-green-600"
+      ? "text-green-600 border-green-500"
       : score >= 60
-      ? "text-yellow-500"
-      : "text-red-600";
+      ? "text-yellow-500 border-yellow-500"
+      : "text-red-600 border-red-500";
 
   const scoreLabel =
     score >= 80
@@ -30,28 +32,57 @@ const ATSCard = ({ analysis }) => {
       ? "Needs Improvement"
       : "Poor ATS Score";
 
-   return (
+
+  return (
 
     <DashboardCard title="ATS Score">
 
-      <div className={`text-5xl font-bold ${scoreColor}`}>
-        {score}
-      </div>
+      <div className="flex flex-col items-center">
 
-      <p className="text-gray-500">
-        out of {maxScore}
-      </p>
-
-      <div className="w-full bg-gray-200 rounded-full h-3 mt-6">
+        {/* Circular Score */}
         <div
-          className="bg-blue-600 h-3 rounded-full transition-all duration-500"
-          style={{ width: `${score}%` }}
-        />
-      </div>
+          className={`
+            w-32 
+            h-32 
+            rounded-full 
+            border-8 
+            ${scoreColor}
+            flex 
+            flex-col 
+            items-center 
+            justify-center
+          `}
+        >
+          <span className="text-4xl font-bold">
+            {score}%
+          </span>
 
-      <p className="mt-4 font-medium">
-        {scoreLabel}
-      </p>
+          <span className="text-sm text-gray-500">
+            ATS
+          </span>
+
+        </div>
+
+
+        {/* Status */}
+        <p className="mt-5 font-medium">
+          {scoreLabel}
+        </p>
+
+
+        {/* Progress bar */}
+        <div className="w-full bg-gray-200 rounded-full h-3 mt-5">
+
+          <div
+            className="bg-blue-600 h-3 rounded-full transition-all duration-500"
+            style={{
+              width: `${score}%`
+            }}
+          />
+
+        </div>
+
+      </div>
 
     </DashboardCard>
 
