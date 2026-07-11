@@ -515,7 +515,7 @@ MongoDB History
 
 This helps identify whether the result was newly generated or retrieved from existing data.
 
-# Caching & Fallback Strategy
+## Caching & Fallback Strategy
 
 The application uses a multi-layer caching approach to improve performance and reduce repeated AI analysis.
 
@@ -523,7 +523,7 @@ The application uses a multi-layer caching approach to improve performance and r
 - **MongoDB** – Persistent storage for resume analyses.
 - **Gemini AI** – Performs fresh analysis when no cached result is available.
 
-# Fallback Behavior
+### Fallback Behavior
 
 If Redis is unavailable:
 
