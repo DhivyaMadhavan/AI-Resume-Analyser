@@ -515,6 +515,22 @@ MongoDB History
 
 This helps identify whether the result was newly generated or retrieved from existing data.
 
+# Caching & Fallback Strategy
+
+The application uses a multi-layer caching approach to improve performance and reduce repeated AI analysis.
+
+- **Redis** – Fast in-memory cache for recent analyses.
+- **MongoDB** – Persistent storage for resume analyses.
+- **Gemini AI** – Performs fresh analysis when no cached result is available.
+
+# Fallback Behavior
+
+If Redis is unavailable:
+
+- Resume analysis is retrieved from MongoDB (if previously analyzed).
+- JD and Role matching are performed as fresh AI analyses when no cached data exists.
+- The application continues to function without interruption, ensuring graceful degradation instead of failure.
+
 ---
 
 # Database Design
