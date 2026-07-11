@@ -544,6 +544,114 @@ Stores:
 - Metadata
 
 ---
+# Current Database Implementation Status
+
+The current implementation uses MongoDB persistence for Resume Analysis.
+
+## Resume Analysis Storage
+
+Resume analysis results are stored in MongoDB.
+
+The resume collection stores:
+
+- Resume hash
+- Resume analysis results
+- Candidate information
+- ATS score
+- Extracted skills
+- Experience details
+- Recommendations
+- Analysis metadata
+
+MongoDB acts as the permanent storage layer for previously analyzed resumes.
+
+Resume retrieval flow:
+
+```
+Resume Upload
+
+        ↓
+
+Generate Resume Hash
+
+        ↓
+
+Check Redis Cache
+
+        ↓
+
+Redis Hit
+
+        ↓
+
+Return Cached Analysis
+
+
+Redis Miss
+
+        ↓
+
+Check MongoDB Resume Collection
+
+        ↓
+
+Return Stored Resume Analysis
+
+```
+
+---
+
+## Job Description and Job Role Analysis Storage
+
+Currently, separate MongoDB collections for Job Description and Job Role analysis are not implemented.
+
+For these modes:
+
+- Redis is used for temporary caching of analysis results.
+- If Redis contains the analysis, the cached result is returned.
+- If Redis is unavailable or cache miss occurs, a fresh Gemini AI analysis is generated.
+
+Current flow:
+
+```
+Resume + Job Description
+
+or
+
+Resume + Job Role
+
+        ↓
+
+Generate Analysis Request
+
+        ↓
+
+Check Redis Cache
+
+        ↓
+
+Redis Hit
+
+        ↓
+
+Return Cached Analysis
+
+
+Redis Miss / Redis Unavailable
+
+        ↓
+
+Fresh Gemini AI Analysis
+
+```
+
+Future enhancement:
+
+- Create dedicated MongoDB collections for Job Description analysis.
+- Create dedicated MongoDB collections for Job Role analysis.
+- Store JD hash and Role metadata.
+- Enable MongoDB fallback for JD and Role analysis similar to Resume Analysis.
+
 
 # System Architecture
 
