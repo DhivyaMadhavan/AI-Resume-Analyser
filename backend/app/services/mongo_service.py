@@ -31,11 +31,14 @@ def save_analysis(document: dict):
     return update_document["resume_hash"]
 
 def get_analysis_by_hash(resume_hash: str):
-    """
-    Retrieve analysis by resume hash.
-    """
 
-    return resume_collection.find_one(
+    import time
+
+    start = time.perf_counter()
+
+    result = resume_collection.find_one(
         {"resume_hash": resume_hash},
         {"_id": 0}
-    )    
+    )   
+
+    return result
