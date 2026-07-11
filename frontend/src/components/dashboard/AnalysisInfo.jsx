@@ -1,4 +1,8 @@
+import { useState } from "react";
+
 const AnalysisInfo = ({ resumeData }) => {
+
+  const [showInfo, setShowInfo] = useState(false);  
   if (!resumeData) return null;
 
   // Resume analysis source (top-level)
@@ -41,68 +45,53 @@ const AnalysisInfo = ({ resumeData }) => {
   const matchingInfo = getSourceInfo(matchingSource);
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+  <div className="mb-4">
+    {/* Toggle Button */}
+    <button
+      onClick={() => setShowInfo(!showInfo)}
+      className="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition"
+    >
+      ⚙️ Processing Info
+      <span>{showInfo ? "▲" : "▼"}</span>
+    </button>
 
-      <h2 className="text-xl font-semibold mb-5">
-        Processing Information
-      </h2>
+    {/* Expandable Card */}
+    {showInfo && (
+      <div className="mt-2 w-fit max-w-sm rounded-lg border border-gray-200 bg-white p-3 shadow-sm text-[11px]">
 
-      <div className="space-y-5">
+        <div className="space-y-3">
 
-        {/* Resume Analysis */}
-
-        <div>
-
-          <p className="font-semibold text-gray-800">
-            📄 Resume Analysis
-          </p>
-
-          <p className="text-gray-600 ml-5 mt-1">
-            {resumeInfo.icon} {resumeInfo.text}
-          </p>
-
-        </div>
-
-        {/* JD / Role Matching */}
-
-        {matchingSource && (
-
+          {/* Resume */}
           <div>
-
             <p className="font-semibold text-gray-800">
-
-              {resumeData.matching.mode === "jd"
-                ? "🎯 JD Matching"
-                : "🎯 Role Matching"}
-
+              📄 Resume Analysis
             </p>
 
-            <p className="text-gray-600 ml-5 mt-1">
-              {matchingInfo.icon} {matchingInfo.text}
+            <p className="ml-5 text-gray-600">
+              {resumeInfo.icon} {resumeInfo.text}
             </p>
-
           </div>
 
-        )}
+          {/* JD / Role */}
+          {matchingSource && (
+            <div>
+              <p className="font-semibold text-gray-800">
+                {resumeData.matching.mode === "jd"
+                  ? "🎯 JD Matching"
+                  : "🎯 Role Matching"}
+              </p>
 
-        {/* Resume Hash */}
-
-        <div className="border-t pt-4">
-
-          <p className="font-semibold text-gray-800">
-            Resume Hash
-          </p>
-
-          <p className="text-sm text-gray-500 break-all mt-1">
-            {resumeHash}
-          </p>
+              <p className="ml-5 text-gray-600">
+                {matchingInfo.icon} {matchingInfo.text}
+              </p>
+            </div>
+          )}         
 
         </div>
-
       </div>
-
-    </div>
-  );
+    )}
+  </div>
+);
 };
 
 export default AnalysisInfo;

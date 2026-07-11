@@ -94,7 +94,7 @@ const Dashboard = () => {
       <AnalysisInfo resumeData={resumeData} />
 
       {/* Dashboard Cards */}
-      <div className="columns-1 md:columns-2 gap-6 space-y-6 [column-fill:_balance]">
+      <div className="columns-1 md:columns-2 gap-6 space-y-6">
 
         <div className="break-inside-avoid bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
           <ATSCard analysis={analysis} />
