@@ -459,43 +459,6 @@ Output:
 
 ---
 
-# Smart Caching System
-
-The application uses resume hashing and caching to avoid repeated AI processing.
-
-Each uploaded resume generates a unique hash.
-
-The system checks:
-
-1. Redis cache
-2. MongoDB history
-3. Gemini AI processing
-
-Flow:
-
-```
-Resume Upload
-
-        ↓
-
-Generate Resume Hash
-
-        ↓
-
-Check Redis
-
-        ↓
-
-Check MongoDB
-
-        ↓
-
-If Not Found
-
-        ↓
-
-Send To Gemini AI
-```
 
 ---
 
@@ -514,7 +477,7 @@ MongoDB History
 ```
 
 This helps identify whether the result was newly generated or retrieved from existing data.
-
+---
 ## Caching & Fallback Strategy
 
 The application uses a multi-layer caching approach to improve performance and reduce repeated AI analysis.
@@ -530,7 +493,7 @@ If Redis is unavailable:
 - Resume analysis is retrieved from MongoDB (if previously analyzed).
 - JD and Role matching are performed as fresh AI analyses when no cached data exists.
 - The application continues to function without interruption, ensuring graceful degradation instead of failure.
-
+---
 ---
 
 # Database Design
@@ -625,7 +588,7 @@ For these modes:
 
 - Redis is used for temporary caching of analysis results.
 - If Redis contains the analysis, the cached result is returned.
-- If Redis is unavailable or cache miss occurs, a fresh Gemini AI analysis is generated.
+- If Redis is unavailable or the requested analysis is not present in the cache, a fresh Gemini AI analysis is generated.
 
 Current flow:
 
@@ -710,13 +673,15 @@ Cache Layer
 
  |                    |
 
-Redis              MongoDB
+ Redis               MongoDB
 
- |
+ \                /
 
- ↓
+\              /
 
-Gemini AI Analysis
+     ↓
+
+Gemini AI (if required)
 
  |
 
