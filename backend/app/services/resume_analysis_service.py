@@ -35,6 +35,9 @@ def process_resume(filename: str, cleaned_text: str) -> dict:
         "preview": cleaned_text[:1000],
         **resume_analysis.model_dump()
     }
+    analysis["source"] = AnalysisSource.fresh
+    analysis.setdefault("metadata", {})
+    analysis["metadata"]["cached"] = False
     print("🆕 Fresh Analysis:", resume_hash)
 
     save_analysis(analysis)
