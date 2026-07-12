@@ -66,7 +66,11 @@ export default function useResumeAnalysis() {
 
             console.log("====================================");
             
-            navigate(`/dashboard/${result.resume_hash}`);
+            navigate(`/dashboard/${result.resume_hash}`, {
+              state: {
+                mode,
+              },
+            });
 
         }
         catch (err) {
