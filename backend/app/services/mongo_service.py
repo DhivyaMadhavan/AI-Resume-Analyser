@@ -16,8 +16,7 @@ def save_analysis(document: dict):
 
     # Remove fields handled separately by MongoDB
     update_document.pop("created_at", None)
-    print("Saving hash:", update_document["resume_hash"])
-
+    
     resume_collection.update_one(
         {"resume_hash": update_document["resume_hash"]},
         {
