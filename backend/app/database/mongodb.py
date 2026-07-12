@@ -21,6 +21,7 @@ start = time.perf_counter()
 db = client[settings.DATABASE_NAME]
 
 resume_collection = db["resume_analysis"]
+matching_collection = db["jd_matching"]
 
 print(
     "Mongo collection setup:",
