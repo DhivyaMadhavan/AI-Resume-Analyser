@@ -69,10 +69,10 @@ const Dashboard = () => {
 
   const analysis = resumeData?.analysis;
   const matching = resumeData?.matching;
-  console.log("resumeData:", resumeData);
-  console.log("matching:", matching);
-  console.log("matching.mode:", matching?.mode);
-  console.log("matching.result:", matching?.result);
+  // console.log("resumeData:", resumeData);
+  // console.log("matching:", matching);
+  // console.log("matching.mode:", matching?.mode);
+  // console.log("matching.result:", matching?.result);
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 text-gray-800 text-[13px] leading-relaxed">
