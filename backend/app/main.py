@@ -33,16 +33,15 @@ app.include_router(resume_router)
 
 @app.on_event("startup")
 def check_redis_on_startup():
-
     try:
-
         redis_client.ping()
-        redis_status.REDIS_AVAILABLE = True        
+        print("✅ Redis Connected Successfully")
+        redis_status.REDIS_AVAILABLE = True
 
-    except Exception:
-        redis_status.REDIS_AVAILABLE = False
-
-        
+    except Exception as e:
+        print("❌ Redis Connection Failed")
+        print(e)
+        redis_status.REDIS_AVAILABLE = False        
 
 @app.get("/")
 def home():
