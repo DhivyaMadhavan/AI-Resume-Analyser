@@ -43,15 +43,8 @@ router = APIRouter(
 )
 
 def save_and_return(result):
-
-    resume_hash = save_analysis(result)
-
-    result["analysis_id"] = resume_hash
-
+    result["analysis_id"] = result["resume_hash"]
     return result
-
-
-
 
 @router.post("/upload")
 async def upload_resume(
