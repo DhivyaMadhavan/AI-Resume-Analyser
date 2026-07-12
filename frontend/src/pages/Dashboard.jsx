@@ -30,6 +30,7 @@ const Dashboard = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const mode = location.state?.mode ?? "resume";
 
   const analysisMode = location.state?.mode;
 
@@ -37,7 +38,7 @@ const Dashboard = () => {
     const fetchAnalysis = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/v1/resume/${resume_hash}`
+          `${import.meta.env.VITE_API_URL}/api/v1/resume/${resume_hash}?mode=${mode}`
         );
 
         
