@@ -13,7 +13,7 @@ import WeaknessesCard from "../components/dashboard/WeaknessesCard";
 import RecommendationCard from "../components/dashboard/RecommendationCard";
 import JDMatchCard from "../components/dashboard/JDMatchCard";
 import RoleMatchCard from "../components/dashboard/RoleMatchCard";
-import AnalysisInfo from "../components/dashboard/AnalysisInfo";
+
 
 import { generatePDFReport } from "../utils/reportGenerator";
 
@@ -94,9 +94,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Processing Information */}
-      <AnalysisInfo resumeData={resumeData} />
-
+      
       {/* Dashboard Cards */}
       <div className="columns-1 md:columns-2 gap-6 space-y-6">
 
