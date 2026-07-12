@@ -925,7 +925,7 @@ REDIS_PORT=6379
 Frontend:
 
 ```
-VITE_API_URL=http://localhost:8000
+VITE_API_URL=https://ai-resume-analyser.railway.internal
 ```
 # How to Run the Application
 
