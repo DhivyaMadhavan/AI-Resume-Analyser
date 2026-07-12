@@ -11,6 +11,7 @@ redis_client = redis.Redis(
     db=settings.REDIS_DB,
 
     ssl=True,
+    ssl_cert_reqs=None, 
 
     decode_responses=True,
 
