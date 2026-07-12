@@ -3,6 +3,7 @@ from app.services.cache_service import get_cached_analysis, cache_analysis
 from app.services.mongo_service import save_analysis, get_analysis_by_hash
 from app.services.analysis_service import analyze_resume
 from app.models.enums import AnalysisSource
+import copy
 
 
 def process_resume(filename: str, cleaned_text: str) -> dict:
@@ -10,6 +11,7 @@ def process_resume(filename: str, cleaned_text: str) -> dict:
     cached_result = get_cached_analysis(resume_hash)
     if cached_result:
         print("✅ Redis Hit:", resume_hash)
+        cached_result = copy.deepcopy(cached_result)
         cached_result.setdefault("metadata", {})
         cached_result["source"] = AnalysisSource.redis        
         cached_result["metadata"]["cached"] = True
@@ -18,15 +20,16 @@ def process_resume(filename: str, cleaned_text: str) -> dict:
     mongo_result = get_analysis_by_hash(resume_hash)
     if mongo_result:
         print("✅ Mongo Hit:", resume_hash)
+        mongo_result = copy.deepcopy(mongo_result)
         mongo_result.setdefault("metadata", {})
         mongo_result["source"] = AnalysisSource.mongodb        
         mongo_result["metadata"]["cached"] = False
 
         # Cache ONLY the resume analysis, not any previous JD/Role matching
-        resume_cache = mongo_result.copy()
+        resume_cache = copy.deepcopy(mongo_result)
         resume_cache.pop("matching", None)
 
-        cache_analysis(resume_hash, mongo_result)
+        cache_analysis(resume_hash, resume_cache)
         return mongo_result
 
     resume_analysis = analyze_resume(cleaned_text)
