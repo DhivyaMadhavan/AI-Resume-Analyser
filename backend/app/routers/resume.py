@@ -199,14 +199,7 @@ async def upload_resume(
                     },
                     "result": cached_match,
                 }
-                save_matching(
-                    {
-                        "matching_hash": matching_hash,
-                        "resume_hash": result["resume_hash"],
-                        "mode": "jd",
-                        "result": cached_match
-                    }
-                )
+                
                                
                 resume_document = copy.deepcopy(result)
                 resume_document.pop("matching", None)
@@ -322,14 +315,7 @@ async def upload_resume(
                         },
                         "result": cached_match,
                     }
-                save_matching(
-                        {
-                            "matching_hash": matching_hash,
-                            "resume_hash": result["resume_hash"],
-                            "mode": "role",
-                            "result": cached_match
-                        }
-                    )
+                
                
                 resume_document = copy.deepcopy(result)
                 resume_document.pop("matching", None)
