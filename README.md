@@ -927,6 +927,98 @@ Frontend:
 ```
 VITE_API_URL=http://localhost:8000
 ```
+# How to Run the Application
+
+## Prerequisites
+
+Make sure the following are installed on your system:
+
+- Docker
+- Docker Compose
+- Git
+
+---
+
+## Clone the Repository
+
+```bash
+git clone https://github.com/DhivyaMadhavan/AI-Resume-Analyser.git
+cd AI-Resume-Analyser
+```
+
+---
+
+## Configure Environment Variables
+
+Create the required `.env` files for both the backend and frontend using the values shown in the **Environment Configuration** section.
+
+---
+
+## Build the Docker Images
+
+```bash
+docker compose build
+```
+
+---
+
+## Start the Application
+
+```bash
+docker compose up -d
+```
+
+To view container logs:
+
+```bash
+docker compose logs -f
+```
+
+---
+
+## Access the Application
+
+After the containers start successfully:
+
+| Service | URL |
+|----------|-----|
+| Frontend | http://localhost:5173 |
+| Backend API | http://localhost:8000 |
+| FastAPI Swagger UI | http://localhost:8000/docs |
+
+---
+
+## Stop the Application
+
+```bash
+docker compose down
+```
+
+---
+
+## Restart After Code or Environment Changes
+
+If you modify environment variables or rebuild the application:
+
+```bash
+docker compose down
+docker compose up --build -d
+```
+
+---
+
+## Verify Running Containers
+
+```bash
+docker ps
+```
+
+Expected running containers:
+
+- Frontend
+- Backend
+- MongoDB
+- Redis
 
 ---
 
