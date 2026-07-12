@@ -8,8 +8,6 @@ def save_matching(document: dict):
 
     document["updated_at"] = now
 
-    document.pop("_id", None)
-
     matching_collection.update_one(
         {
             "matching_hash": document["matching_hash"]
@@ -23,4 +21,16 @@ def save_matching(document: dict):
         upsert=True
     )
 
-    return document["matching_hash"]
+
+def get_matching(matching_hash: str):
+
+    result = matching_collection.find_one(
+        {
+            "matching_hash": matching_hash
+        },
+        {
+            "_id":0
+        }
+    )
+
+    return result
