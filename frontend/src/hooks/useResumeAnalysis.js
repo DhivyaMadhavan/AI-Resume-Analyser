@@ -54,9 +54,16 @@ export default function useResumeAnalysis() {
                 jobDescription,
                 role
             );
-            console.log("====================================");
-            console.log("Analysis Source :", result.source);
-            console.log("Resume Hash     :", result.resume_hash);
+            console.log("========== Resume Analysis ==========");
+            console.log("Resume Source :", result.source);
+            console.log("Resume Hash   :", result.resume_hash);
+            
+            if (result.matching) {
+                console.log("========== Matching ==========");
+                console.log("Mode          :", result.matching.mode);
+                console.log("Match Source  :", result.matching.metadata?.source);
+            }
+
             console.log("====================================");
             
             navigate(`/dashboard/${result.resume_hash}`);
