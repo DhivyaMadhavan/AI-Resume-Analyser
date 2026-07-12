@@ -6,8 +6,7 @@ from app.models.enums import AnalysisSource
 
 
 def process_resume(filename: str, cleaned_text: str) -> dict:
-    resume_hash = generate_resume_hash(cleaned_text)
-    print("Generated hash:", resume_hash)
+    resume_hash = generate_resume_hash(cleaned_text)    
     cached_result = get_cached_analysis(resume_hash)
     if cached_result:
         print("✅ Redis Hit:", resume_hash)
