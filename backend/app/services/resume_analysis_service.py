@@ -35,6 +35,7 @@ def process_resume(filename: str, cleaned_text: str) -> dict:
         "preview": cleaned_text[:1000],
         **resume_analysis.model_dump()
     }
+    print("🆕 Fresh Analysis:", resume_hash)
 
     save_analysis(analysis)
     cache_analysis(resume_hash, analysis)
