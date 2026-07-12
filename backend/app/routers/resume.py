@@ -133,8 +133,15 @@ async def upload_resume(
         # -----------------------------
 
         if mode == AnalysisMode.resume:
-            save_analysis(result)
-            cache_analysis(result["resume_hash"], result)
+            save_analysis(result)           
+
+            resume_cache = result.copy()
+            resume_cache.pop("matching", None)
+            
+            cache_analysis(
+                result["resume_hash"],
+                resume_cache
+            )
             return save_and_return(result)
 
         # -----------------------------
@@ -171,8 +178,15 @@ async def upload_resume(
                     },
                     "result": cached_match,
                 }
-                save_analysis(result)
-                cache_analysis(result["resume_hash"], result)
+                save_analysis(result)               
+
+                resume_cache = result.copy()
+                resume_cache.pop("matching", None)
+                
+                cache_analysis(
+                    result["resume_hash"],
+                    resume_cache
+                )
 
                 return save_and_return(result)
 
@@ -207,9 +221,15 @@ async def upload_resume(
                 },
                 "result": match_data,
             }
-            save_analysis(result)
-            cache_analysis(result["resume_hash"], result)
+            save_analysis(result)          
 
+            resume_cache = result.copy()
+            resume_cache.pop("matching", None)
+            
+            cache_analysis(
+                result["resume_hash"],
+                resume_cache
+            )
             return save_and_return(result)
 
         # -----------------------------
@@ -248,8 +268,15 @@ async def upload_resume(
                         },
                         "result": cached_match,
                     }
-                save_analysis(result)
-                cache_analysis(result["resume_hash"], result)
+                save_analysis(result)              
+
+                resume_cache = result.copy()
+                resume_cache.pop("matching", None)
+                
+                cache_analysis(
+                    result["resume_hash"],
+                    resume_cache
+                )
                 return save_and_return(result)
 
 
@@ -284,7 +311,14 @@ async def upload_resume(
                 "result": match_data,
             }
             save_analysis(result)
-            cache_analysis(result["resume_hash"], result)
+
+            resume_cache = result.copy()
+            resume_cache.pop("matching", None)
+            
+            cache_analysis(
+                result["resume_hash"],
+                resume_cache
+            )
             return save_and_return(result)
         raise HTTPException(
             status_code=400,
