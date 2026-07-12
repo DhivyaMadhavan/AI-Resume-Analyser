@@ -37,6 +37,10 @@ from app.services.text_cleaner import (
     clean_job_description,
 )
 
+from app.services.matching_mongo_service import (
+    save_matching,
+    get_matching
+)
 
 
 router = APIRouter(
@@ -139,7 +143,7 @@ async def upload_resume(
             
             save_analysis(resume_document)           
 
-            resume_cache = result.copy()
+            resume_cache = copy.deepcopy(result)
             resume_cache.pop("matching", None)
             
             cache_analysis(
@@ -161,6 +165,19 @@ async def upload_resume(
             )
              
             cached_match = get_cached_matching(matching_hash)
+            
+            matching_source = AnalysisSource.redis
+            
+            
+            if not cached_match:
+            
+                cached_match = get_matching(matching_hash)
+            
+                if cached_match:
+                    cached_match = cached_match["result"]
+                    matching_source = AnalysisSource.mongodb          
+            
+          
 
             if cached_match:
 
@@ -178,16 +195,25 @@ async def upload_resume(
                         "cached": True,
                         "processing_time_ms": 0,
                         "timestamp": datetime.now(UTC),
-                        "source": AnalysisSource.redis,
+                        "source": matching_source,
                     },
                     "result": cached_match,
                 }
+                save_matching(
+                    {
+                        "matching_hash": matching_hash,
+                        "resume_hash": result["resume_hash"],
+                        "mode": "jd",
+                        "result": cached_match
+                    }
+                )
+                               
                 resume_document = copy.deepcopy(result)
                 resume_document.pop("matching", None)
                 
                 save_analysis(resume_document)              
 
-                resume_cache = result.copy()
+                resume_cache = copy.deepcopy(result)
                 resume_cache.pop("matching", None)
                 
                 cache_analysis(
@@ -209,6 +235,14 @@ async def upload_resume(
                 matching_hash,
                 match_data
             )
+            save_matching(
+                {
+                    "matching_hash": matching_hash,
+                    "resume_hash": result["resume_hash"],
+                    "mode": "jd",
+                    "result": match_data
+                }
+            )
 
             result["matching"] = {
                 "mode": AnalysisMode.jd,
@@ -227,13 +261,13 @@ async def upload_resume(
                     "source": AnalysisSource.fresh,
                 },
                 "result": match_data,
-            }
+            }           
             resume_document = copy.deepcopy(result)
             resume_document.pop("matching", None)
             
             save_analysis(resume_document)         
 
-            resume_cache = result.copy()
+            resume_cache = copy.deepcopy(result)
             resume_cache.pop("matching", None)
             
             cache_analysis(
@@ -255,8 +289,18 @@ async def upload_resume(
             )
             
 
-            cached_match = get_cached_matching(matching_hash)
+            cached_match = get_cached_matching(matching_hash)            
+
+            matching_source = AnalysisSource.redis
             
+            
+            if not cached_match:
+            
+                cached_match = get_matching(matching_hash)
+            
+                if cached_match:
+                    cached_match = cached_match["result"]
+                    matching_source = AnalysisSource.mongodb
 
             if cached_match:
 
@@ -274,16 +318,25 @@ async def upload_resume(
                             "cached": True,
                             "processing_time_ms": 0,
                             "timestamp": datetime.now(UTC),
-                            "source": AnalysisSource.redis,
+                            "source": matching_source,
                         },
                         "result": cached_match,
                     }
+                save_matching(
+                        {
+                            "matching_hash": matching_hash,
+                            "resume_hash": result["resume_hash"],
+                            "mode": "role",
+                            "result": cached_match
+                        }
+                    )
+               
                 resume_document = copy.deepcopy(result)
                 resume_document.pop("matching", None)
                 
                 save_analysis(resume_document)             
 
-                resume_cache = result.copy()
+                resume_cache = copy.deepcopy(result)
                 resume_cache.pop("matching", None)
                 
                 cache_analysis(
@@ -304,6 +357,14 @@ async def upload_resume(
                 matching_hash,
                 match_data
             )
+            save_matching(
+                {
+                    "matching_hash": matching_hash,
+                    "resume_hash": result["resume_hash"],
+                    "mode": "role",
+                    "result": match_data
+                }
+            )
 
             result["matching"] = {
                 "mode": AnalysisMode.role,
@@ -323,12 +384,13 @@ async def upload_resume(
                 },
                 "result": match_data,
             }
+           
             resume_document = copy.deepcopy(result)
             resume_document.pop("matching", None)
             
             save_analysis(resume_document)
 
-            resume_cache = result.copy()
+            resume_cache = copy.deepcopy(result)
             resume_cache.pop("matching", None)
             
             cache_analysis(
