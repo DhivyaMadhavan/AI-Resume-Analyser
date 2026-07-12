@@ -35,9 +35,9 @@ def get_matching(matching_hash: str):
 
     return result
 
-def get_matching_by_resume_hash(resume_hash):
+def get_matching_by_resume_hash(resume_hash: str):
 
-    return list(
+    records = list(
         matching_collection.find(
             {
                 "resume_hash": resume_hash
@@ -45,3 +45,7 @@ def get_matching_by_resume_hash(resume_hash):
         )
     )
 
+    for record in records:
+        record.pop("_id", None)
+
+    return records
