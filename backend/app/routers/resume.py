@@ -39,7 +39,8 @@ from app.services.text_cleaner import (
 
 from app.services.matching_mongo_service import (
     save_matching,
-    get_matching
+    get_matching,
+    get_analysis_by_hash
 )
 
 
@@ -198,22 +199,8 @@ async def upload_resume(
                         "source": matching_source,
                     },
                     "result": cached_match,
-                }
-                
-                               
-                resume_document = copy.deepcopy(result)
-                resume_document.pop("matching", None)
-                
-                save_analysis(resume_document)              
-
-                resume_cache = copy.deepcopy(result)
-                resume_cache.pop("matching", None)
-                
-                cache_analysis(
-                    result["resume_hash"],
-                    resume_cache
-                )
-
+                }        
+                 
                 return save_and_return(result)
 
 
@@ -254,19 +241,9 @@ async def upload_resume(
                     "source": AnalysisSource.fresh,
                 },
                 "result": match_data,
-            }           
-            resume_document = copy.deepcopy(result)
-            resume_document.pop("matching", None)
+            }         
             
-            save_analysis(resume_document)         
-
-            resume_cache = copy.deepcopy(result)
-            resume_cache.pop("matching", None)
-            
-            cache_analysis(
-                result["resume_hash"],
-                resume_cache
-            )
+          
             return save_and_return(result)
 
         # -----------------------------
@@ -314,21 +291,9 @@ async def upload_resume(
                             "source": matching_source,
                         },
                         "result": cached_match,
-                    }
-                
+                    }                
+                      
                
-                resume_document = copy.deepcopy(result)
-                resume_document.pop("matching", None)
-                
-                save_analysis(resume_document)             
-
-                resume_cache = copy.deepcopy(result)
-                resume_cache.pop("matching", None)
-                
-                cache_analysis(
-                    result["resume_hash"],
-                    resume_cache
-                )
                 return save_and_return(result)
 
 
@@ -369,20 +334,8 @@ async def upload_resume(
                     "source": AnalysisSource.fresh,
                 },
                 "result": match_data,
-            }
+            }           
            
-            resume_document = copy.deepcopy(result)
-            resume_document.pop("matching", None)
-            
-            save_analysis(resume_document)
-
-            resume_cache = copy.deepcopy(result)
-            resume_cache.pop("matching", None)
-            
-            cache_analysis(
-                result["resume_hash"],
-                resume_cache
-            )
             return save_and_return(result)
         raise HTTPException(
             status_code=400,
@@ -404,4 +357,15 @@ def get_resume_analysis(resume_hash: str):
             detail="Analysis not found"
         )
 
-    return result            
+    print("Resume hash:", resume_hash)
+    matching_results = get_matching_by_resume_hash(
+        resume_hash
+    )
+
+    print("Matching results:", matching_results)
+    if matching_results:
+
+        result["matching"] = matching_results[-1]
+
+
+    return result         
