@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     REDIS_HOST: str
     REDIS_PORT: int
     REDIS_DB: int
+    REDIS_USER: str
+    REDIS_PASSWORD: str
 
     # Gemini
     GEMINI_API_KEY: str 
