@@ -241,7 +241,20 @@ async def upload_resume(
                     "source": AnalysisSource.fresh,
                 },
                 "result": match_data,
-            }         
+            }  
+            resume_document = copy.deepcopy(result)
+            resume_document.pop("matching", None)
+            
+            save_analysis(resume_document)
+            
+            
+            resume_cache = copy.deepcopy(result)
+            resume_cache.pop("matching", None)
+            
+            cache_analysis(
+                result["resume_hash"],
+                resume_cache
+            )
             
           
             return save_and_return(result)
@@ -334,7 +347,20 @@ async def upload_resume(
                     "source": AnalysisSource.fresh,
                 },
                 "result": match_data,
-            }           
+            }  
+            resume_document = copy.deepcopy(result)
+            resume_document.pop("matching", None)
+            
+            save_analysis(resume_document)
+            
+            
+            resume_cache = copy.deepcopy(result)
+            resume_cache.pop("matching", None)
+            
+            cache_analysis(
+                result["resume_hash"],
+                resume_cache
+            )
            
             return save_and_return(result)
         raise HTTPException(
