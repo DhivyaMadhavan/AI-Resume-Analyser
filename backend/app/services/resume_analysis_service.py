@@ -10,6 +10,7 @@ def process_resume(filename: str, cleaned_text: str) -> dict:
     print("Generated hash:", resume_hash)
     cached_result = get_cached_analysis(resume_hash)
     if cached_result:
+        print("✅ Redis Hit:", resume_hash)
         cached_result.setdefault("metadata", {})
         cached_result["source"] = AnalysisSource.redis        
         cached_result["metadata"]["cached"] = True
@@ -17,6 +18,7 @@ def process_resume(filename: str, cleaned_text: str) -> dict:
 
     mongo_result = get_analysis_by_hash(resume_hash)
     if mongo_result:
+        print("✅ Mongo Hit:", resume_hash)
         mongo_result.setdefault("metadata", {})
         mongo_result["source"] = AnalysisSource.mongodb        
         mongo_result["metadata"]["cached"] = False
