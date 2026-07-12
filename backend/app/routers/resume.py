@@ -373,7 +373,7 @@ async def upload_resume(
             os.remove(temp_file_path)
 
 @router.get("/{resume_hash}")
-def get_resume_analysis(resume_hash: str,include_matching: bool = False):
+def get_resume_analysis(resume_hash: str,mode: str = "resume"):
 
     print("GET resume hash:", resume_hash)
 
@@ -387,11 +387,20 @@ def get_resume_analysis(resume_hash: str,include_matching: bool = False):
             detail="Analysis not found"
         )
 
-    if include_matching:
+    if mode != "resume":
 
-        matching_results = get_matching_by_resume_hash(resume_hash)
-
-        if matching_results:
-            result["matching"] = matching_results[-1]
+        matching_results = get_matching_by_resume_hash(
+            resume_hash
+        )
+    
+        for item in reversed(matching_results):
+    
+            if item["mode"] == mode:
+    
+                item.pop("_id", None)
+    
+                result["matching"] = item
+    
+                break
 
     return result   
