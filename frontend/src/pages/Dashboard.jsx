@@ -30,7 +30,7 @@ const Dashboard = () => {
     const fetchAnalysis = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8000/api/v1/resume/${resume_hash}`
+          `${import.meta.env.VITE_API_URL}/api/v1/resume/${resume_hash}`
         );
 
         
