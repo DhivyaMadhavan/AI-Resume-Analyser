@@ -2,6 +2,7 @@ import os
 import tempfile
 from datetime import datetime, UTC
 from app.models.enums import AnalysisSource
+from app.services.cache_service import cache_analysis
 
 
 from fastapi import (
@@ -132,6 +133,8 @@ async def upload_resume(
         # -----------------------------
 
         if mode == AnalysisMode.resume:
+            save_analysis(result)
+            cache_analysis(result["resume_hash"], result)
             return save_and_return(result)
 
         # -----------------------------
@@ -168,6 +171,8 @@ async def upload_resume(
                     },
                     "result": cached_match,
                 }
+                save_analysis(result)
+                cache_analysis(result["resume_hash"], result)
 
                 return save_and_return(result)
 
@@ -202,6 +207,8 @@ async def upload_resume(
                 },
                 "result": match_data,
             }
+            save_analysis(result)
+            cache_analysis(result["resume_hash"], result)
 
             return save_and_return(result)
 
@@ -241,6 +248,8 @@ async def upload_resume(
                         },
                         "result": cached_match,
                     }
+                save_analysis(result)
+                cache_analysis(result["resume_hash"], result)
                 return save_and_return(result)
 
 
@@ -274,6 +283,8 @@ async def upload_resume(
                 },
                 "result": match_data,
             }
+            save_analysis(result)
+            cache_analysis(result["resume_hash"], result)
             return save_and_return(result)
         raise HTTPException(
             status_code=400,
