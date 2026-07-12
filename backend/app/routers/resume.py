@@ -40,7 +40,7 @@ from app.services.text_cleaner import (
 from app.services.matching_mongo_service import (
     save_matching,
     get_matching,
-    get_analysis_by_hash
+    get_matching_by_resume_hash
 )
 
 
