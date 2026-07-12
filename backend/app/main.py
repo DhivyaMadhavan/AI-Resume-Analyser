@@ -14,6 +14,7 @@ app = FastAPI(
 
 origins = [
     "http://localhost:5173",
+     "https://ai-resume-analyser-iota-three.vercel.app"
 ]
 
 app.add_middleware(
