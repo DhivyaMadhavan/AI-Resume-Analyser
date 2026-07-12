@@ -34,3 +34,14 @@ def get_matching(matching_hash: str):
     )
 
     return result
+
+def get_matching_by_resume_hash(resume_hash):
+
+    return list(
+        matching_collection.find(
+            {
+                "resume_hash": resume_hash
+            }
+        )
+    )
+
