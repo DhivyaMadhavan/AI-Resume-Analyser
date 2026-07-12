@@ -38,10 +38,7 @@ def process_resume(filename: str, cleaned_text: str) -> dict:
     analysis["source"] = AnalysisSource.fresh
     analysis.setdefault("metadata", {})
     analysis["metadata"]["cached"] = False
-    print("🆕 Fresh Analysis:", resume_hash)
-
-    save_analysis(analysis)
-    cache_analysis(resume_hash, analysis)
+    print("🆕 Fresh Analysis:", resume_hash)    
 
     return {
         "source": AnalysisSource.fresh,
