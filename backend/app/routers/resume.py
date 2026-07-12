@@ -374,12 +374,8 @@ async def upload_resume(
 
 @router.get("/{resume_hash}")
 def get_resume_analysis(resume_hash: str,mode: str = "resume"):
-
-    print("GET resume hash:", resume_hash)
-
-    result = get_analysis_by_hash(resume_hash)
-
-    print("Resume result:", result)
+    
+    result = get_analysis_by_hash(resume_hash)   
 
     if not result:
         raise HTTPException(
