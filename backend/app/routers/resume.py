@@ -375,7 +375,11 @@ async def upload_resume(
 @router.get("/{resume_hash}")
 def get_resume_analysis(resume_hash: str):
 
+    print("GET resume hash:", resume_hash)
+
     result = get_analysis_by_hash(resume_hash)
+
+    print("Resume result:", result)
 
     if not result:
         raise HTTPException(
@@ -383,15 +387,13 @@ def get_resume_analysis(resume_hash: str):
             detail="Analysis not found"
         )
 
-    print("Resume hash:", resume_hash)
     matching_results = get_matching_by_resume_hash(
         resume_hash
     )
 
-    print("Matching results:", matching_results)
-    if matching_results:
+    print("Matching result:", matching_results)
 
+    if matching_results:
         result["matching"] = matching_results[-1]
 
-
-    return result         
+    return result   
