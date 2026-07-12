@@ -3,6 +3,7 @@ import tempfile
 from datetime import datetime, UTC
 from app.models.enums import AnalysisSource
 from app.services.cache_service import cache_analysis
+import copy
 
 
 from fastapi import (
@@ -133,7 +134,10 @@ async def upload_resume(
         # -----------------------------
 
         if mode == AnalysisMode.resume:
-            save_analysis(result)           
+            resume_document = copy.deepcopy(result)
+            resume_document.pop("matching", None)
+            
+            save_analysis(resume_document)           
 
             resume_cache = result.copy()
             resume_cache.pop("matching", None)
@@ -178,7 +182,10 @@ async def upload_resume(
                     },
                     "result": cached_match,
                 }
-                save_analysis(result)               
+                resume_document = copy.deepcopy(result)
+                resume_document.pop("matching", None)
+                
+                save_analysis(resume_document)              
 
                 resume_cache = result.copy()
                 resume_cache.pop("matching", None)
@@ -221,7 +228,10 @@ async def upload_resume(
                 },
                 "result": match_data,
             }
-            save_analysis(result)          
+            resume_document = copy.deepcopy(result)
+            resume_document.pop("matching", None)
+            
+            save_analysis(resume_document)         
 
             resume_cache = result.copy()
             resume_cache.pop("matching", None)
@@ -268,7 +278,10 @@ async def upload_resume(
                         },
                         "result": cached_match,
                     }
-                save_analysis(result)              
+                resume_document = copy.deepcopy(result)
+                resume_document.pop("matching", None)
+                
+                save_analysis(resume_document)             
 
                 resume_cache = result.copy()
                 resume_cache.pop("matching", None)
@@ -310,7 +323,10 @@ async def upload_resume(
                 },
                 "result": match_data,
             }
-            save_analysis(result)
+            resume_document = copy.deepcopy(result)
+            resume_document.pop("matching", None)
+            
+            save_analysis(resume_document)
 
             resume_cache = result.copy()
             resume_cache.pop("matching", None)
