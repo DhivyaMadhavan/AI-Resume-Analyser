@@ -68,7 +68,7 @@ export default function useResumeAnalysis() {
             
             navigate(`/dashboard/${result.resume_hash}`, {
               state: {
-                mode,
+                mode: mode,
               },
             });
 
