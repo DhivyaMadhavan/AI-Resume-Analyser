@@ -23,6 +23,10 @@ def process_resume(filename: str, cleaned_text: str) -> dict:
         mongo_result["source"] = AnalysisSource.mongodb        
         mongo_result["metadata"]["cached"] = False
 
+        # Cache ONLY the resume analysis, not any previous JD/Role matching
+        resume_cache = mongo_result.copy()
+        resume_cache.pop("matching", None)
+
         cache_analysis(resume_hash, mongo_result)
         return mongo_result
 
