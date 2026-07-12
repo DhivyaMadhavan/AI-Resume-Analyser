@@ -1,5 +1,9 @@
 import Loader from "../components/Loader";
-import { useParams, useNavigate } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -25,6 +29,9 @@ const Dashboard = () => {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const analysisMode = location.state?.mode;
 
   useEffect(() => {
     const fetchAnalysis = async () => {
@@ -102,7 +109,7 @@ const Dashboard = () => {
           <ATSCard analysis={analysis} />
         </div>
 
-        {matching?.mode && (
+        {analysisMode !== "resume" && matching?.mode && (
           <div className="break-inside-avoid bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
             <div className="break-inside-avoid bg-yellow-100 p-5 rounded-xl">
               <p>Mode: {String(matching?.mode)}</p>
