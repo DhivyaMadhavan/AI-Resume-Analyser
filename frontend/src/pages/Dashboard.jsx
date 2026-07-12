@@ -61,6 +61,10 @@ const Dashboard = () => {
 
   const analysis = resumeData?.analysis;
   const matching = resumeData?.matching;
+  console.log("resumeData:", resumeData);
+  console.log("matching:", matching);
+  console.log("matching.mode:", matching?.mode);
+  console.log("matching.result:", matching?.result);
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 text-gray-800 text-[13px] leading-relaxed">
@@ -102,13 +106,19 @@ const Dashboard = () => {
 
         {matching?.mode && (
           <div className="break-inside-avoid bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            {matching.mode === "jd" && (
-              <JDMatchCard matching={matching} />
+            <div className="break-inside-avoid bg-yellow-100 p-5 rounded-xl">
+              <p>Mode: {String(matching?.mode)}</p>
+              <p>Has Result: {String(!!matching?.result)}</p>
+  
+              {matching.mode === "jd" && (
+                <JDMatchCard matching={matching} />
+              )}
+  
+              {matching.mode === "role" && (
+                <RoleMatchCard matching={matching} />
+           
             )}
-
-            {matching.mode === "role" && (
-              <RoleMatchCard matching={matching} />
-            )}
+              </div>
           </div>
         )}
 
