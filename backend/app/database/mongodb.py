@@ -6,8 +6,6 @@ client = MongoClient(
     serverSelectionTimeoutMS=5000
 )
 
-start = time.perf_counter()
-
 db = client[settings.DATABASE_NAME]
 
 resume_collection = db["resume_analysis"]
