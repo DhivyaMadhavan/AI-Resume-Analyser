@@ -1,5 +1,6 @@
 import api from "./api";
 
+
 export async function analyzeResume(
     file,
     mode,
@@ -7,13 +8,14 @@ export async function analyzeResume(
     role
 ){
 
-    const formData=new FormData();
+    const formData = new FormData();
 
-    formData.append("file",file);
+    formData.append("file", file);
 
-    formData.append("mode",mode);
+    formData.append("mode", mode);
 
-    if(mode==="jd"){
+
+    if(mode === "jd"){
 
         formData.append(
             "job_description",
@@ -22,7 +24,8 @@ export async function analyzeResume(
 
     }
 
-    if(mode==="role"){
+
+    if(mode === "role"){
 
         formData.append(
             "role",
@@ -31,13 +34,22 @@ export async function analyzeResume(
 
     }
 
-    const response=await api.post(
 
+    const response = await api.post(
         "/api/v1/resume/upload",
-
         formData
-
     );
+
+
+    return response.data;
+
+}
+export async function getJobStatus(jobId){
+
+    const response = await api.get(
+        `/api/v1/resume/job/${jobId}`
+    );
+
 
     return response.data;
 

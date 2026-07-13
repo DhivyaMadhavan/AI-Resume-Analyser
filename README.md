@@ -16,6 +16,9 @@ The application combines backend preprocessing, Generative AI, intelligent cachi
 - PDF Report Generation
 - Redis Caching
 - MongoDB Persistence
+- Asynchronous Background Processing using Redis Queue (RQ)
+- Background Worker for AI Analysis
+- Job Status Tracking
 - Dockerized Deployment
 
 ---
@@ -36,11 +39,14 @@ The application combines backend preprocessing, Generative AI, intelligent cachi
 - Python
 - Pydantic
 - PyMuPDF
+- Redis Queue (RQ)
+- Background Worker
 - Regular Expressions
 
 ## AI
 
 - Google Gemini 2.5 Flash
+- Groq Llama 3.3 70B (Automatic Fallback)
 
 ## Database & Cache
 
@@ -59,124 +65,88 @@ The application combines backend preprocessing, Generative AI, intelligent cachi
 
 # System Architecture
 
-```
+```text
                     User
-
                       │
-
                       ▼
-
                React Frontend
-
                       │
-
                       ▼
-
                FastAPI Backend
-
                       │
-
-        ┌─────────────┴─────────────┐
-
-        │                           │
-
-        ▼                           ▼
-
- Resume Processing          Matching Processing
-
-        │                           │
-
-        └─────────────┬─────────────┘
-
+          Create Analysis Job
+                      │
                       ▼
-
-              Cache Validation
-
-            ┌────────┴────────┐
-
-            ▼                 ▼
-
-         Redis            MongoDB
-
-            │                 │
-
-            └────────┬────────┘
-
-                     ▼
-
-                Gemini AI
-              (Only if Required)
-
-                     │
-
-                     ▼
-
-          Dashboard + PDF Report
+                 Redis Queue (RQ)
+                      │
+                      ▼
+              Background Worker
+                      │
+        ┌─────────────┴─────────────┐
+        ▼                           ▼
+ Resume Analysis              JD / Role Matching
+        │                           │
+        └─────────────┬─────────────┘
+                      ▼
+          Redis Cache Lookup
+        ┌─────────────┴─────────────┐
+        ▼                           ▼
+     Redis Cache              MongoDB Atlas
+        │                           │
+        └─────────────┬─────────────┘
+                      ▼
+          Gemini AI / Groq Fallback
+                      │
+                      ▼
+             Save Results
+                      │
+                      ▼
+         Frontend polls Job Status
 ```
-
----
 
 # Resume Processing Flow
 
 Every uploaded resume follows the processing pipeline below.
 
-```
+```text
 Upload Resume
-
       │
-
       ▼
-
 Extract PDF Text
-
       │
-
       ▼
-
-Clean & Normalize Text
-
+Clean Resume
       │
-
       ▼
-
+Create Job
+      │
+      ▼
+Push Job into Redis Queue
+      │
+      ▼
+Background Worker
+      │
+      ▼
 Generate Resume Hash
-
       │
-
       ▼
-
-Check Redis Cache
-
+Redis Cache
       │
-
       ▼
-
-Check MongoDB
-
+MongoDB
       │
-
       ▼
-
-Gemini Resume Analysis
-(Only if Required)
-
+Gemini AI
       │
-
+   (Fallback)
       ▼
-
-Store in Redis
-
+Groq Llama
       │
-
       ▼
-
-Store in MongoDB
-
+Save Result
       │
-
       ▼
-
-Return Dashboard Response
+Frontend polls Job Status API
 ```
 
 ---
@@ -480,35 +450,72 @@ The application is deployed using cloud services to separate frontend, backend, 
 | Component | Platform |
 |-----------|----------|
 | Frontend | Vercel |
-| Backend | Railway |
+| Backend API | Railway |
+| Background Worker | Railway |
 | Database | MongoDB Atlas |
-| Cache | Redis Cloud |
+| Queue & Cache | Redis Cloud |
 | Containers | Docker |
 
 Deployment architecture:
 
-```
-                    User
-
-                      │
-
-                      ▼
-
-             Vercel Frontend
-
-                      │
-
-                      ▼
-
+```text
+                 User
+                   │
+                   ▼
+            Vercel Frontend
+                   │
+                   ▼
             Railway Backend
+                   │
+            Redis Queue (RQ)
+                   │
+                   ▼
+          Railway Worker Service
+             │              │
+             ▼              ▼
+      MongoDB Atlas    Redis Cloud
+```
+# Background Job Processing
 
-         ┌──────────┴──────────┐
+AI analysis is executed asynchronously using Redis Queue (RQ).
 
-         ▼                     ▼
+### Workflow
 
- MongoDB Atlas           Redis Cloud
+```text
+Client Upload
+      │
+      ▼
+FastAPI API
+      │
+      ▼
+Create Job
+      │
+      ▼
+Redis Queue
+      │
+      ▼
+Worker
+      │
+      ▼
+Resume Analysis
+      │
+      ▼
+JD / Role Matching
+      │
+      ▼
+Store Result
+      │
+      ▼
+Frontend polls GET /api/v1/resume/job/{job_id}
 ```
 
+Benefits:
+
+- Non-blocking API requests
+- Better scalability
+- Multiple workers can process jobs concurrently
+- Improved user experience
+- Retry capability for failed jobs
 ---
 
 # REST API
@@ -519,6 +526,13 @@ Deployment architecture:
 
 ```
 POST /api/v1/resume/upload
+
+Returns
+
+{
+  "job_id": "...",
+  "status": "queued"
+}
 ```
 
 ### Resume + Job Description
@@ -532,6 +546,16 @@ POST /api/v1/resume/upload
 ```
 POST /api/v1/resume/upload
 ```
+### Check Job Status
+
+GET /api/v1/resume/job/{job_id}
+
+Returns:
+
+- queued
+- processing
+- completed
+- failed
 
 ### Retrieve Resume Analysis
 
@@ -578,6 +602,14 @@ The generated report contains:
 - Redis Cache Retrieval
 - MongoDB Retrieval
 
+### Queue Processing
+
+- Job Creation
+- Queue Processing
+- Worker Execution
+- Job Status Polling
+- Retry on Failure
+
 ### Dashboard
 
 - Resume Only Cards
@@ -615,4 +647,4 @@ The generated report contains:
 
 ---
 
-AI Resume Analyzer demonstrates how FastAPI, React, Google Gemini, Redis, MongoDB, and Docker can be combined to build a scalable AI application with intelligent caching, persistent storage, and cloud deployment.
+AI Resume Analyzer demonstrates how FastAPI, React, Redis Queue (RQ), background workers, Google Gemini with Groq fallback, Redis caching, MongoDB persistence, Docker, Railway, and Vercel can be combined to build a scalable, production-ready AI application. The system minimizes repeated AI calls through multi-layer caching, executes long-running AI tasks asynchronously using worker processes, and provides responsive job tracking for an improved user experience.

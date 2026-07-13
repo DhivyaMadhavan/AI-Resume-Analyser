@@ -1,11 +1,5 @@
 import os
 import tempfile
-from datetime import datetime, UTC
-from app.models.enums import AnalysisSource
-from app.services.cache_service import cache_analysis
-import copy
-
-
 from fastapi import (
     APIRouter,
     UploadFile,
@@ -16,31 +10,26 @@ from fastapi import (
 from app.models.enums import AnalysisMode
 from app.services.pdf_service import extract_text_from_pdf
 
-from app.services.resume_analysis_service import process_resume
-from app.services.matching_service import (
-    match_resume_with_jd,
-    match_resume_with_role,
-)
-from app.services.hash_service import generate_matching_hash
+from app.worker.queue import resume_queue
+from app.worker.tasks import worker_process
 
-from app.services.matching_cache_service import (
-    get_cached_matching,
-    cache_matching,
+from app.services.job_service import (
+    create_job,
+    get_job,
 )
-from app.services.mongo_service import (
-    save_analysis,
-    get_analysis_by_hash
 
-)
 from app.services.text_cleaner import (
     clean_text,
     clean_job_description,
 )
 
+
+from app.services.mongo_service import (
+    get_analysis_by_hash,
+)
+
 from app.services.matching_mongo_service import (
-    save_matching,
-    get_matching,
-    get_matching_by_resume_hash
+    get_matching_by_resume_hash,
 )
 
 
@@ -49,9 +38,6 @@ router = APIRouter(
     tags=["Resume"]
 )
 
-def save_and_return(result):
-    result["analysis_id"] = result["resume_hash"]
-    return result
 
 @router.post("/upload")
 async def upload_resume(
@@ -125,283 +111,44 @@ async def upload_resume(
                 detail="Unable to extract text from resume PDF."
             )
 
-        # -----------------------------
-        # Resume Analysis
-        # -----------------------------
-
-        result = process_resume(
+        job_id = create_job(
             filename=file.filename,
-            cleaned_text=cleaned_text
+            mode=mode.value,
+            cleaned_text=cleaned_text,
+            job_description=job_description,
+            role=role,
         )
 
-        # -----------------------------
-        # Resume Only
-        # -----------------------------
+        resume_queue.enqueue(
+            worker_process,
+            job_id
+        )
 
-        if mode == AnalysisMode.resume:
+        return {
+            "job_id": job_id,
+            "status": "queued",
+        } 
+    except Exception as e:
 
-            if result["source"] == AnalysisSource.fresh:
-                resume_document = copy.deepcopy(result)
-                resume_document.pop("matching", None)
-        
-                save_analysis(resume_document)
-        
-            resume_cache = copy.deepcopy(result)
-            resume_cache.pop("matching", None)
-        
-            cache_analysis(
-                result["resume_hash"],
-                resume_cache
-            )
-        
-            return save_and_return(result)
-
-        # -----------------------------
-        # JD Matching
-        # -----------------------------
-
-        if mode == AnalysisMode.jd:
-
-            matching_hash = generate_matching_hash(
-                result["resume_hash"],
-                "jd",
-                job_description
-            )
-             
-            cached_match = get_cached_matching(matching_hash)
-            
-            matching_source = AnalysisSource.redis
-            
-            
-            if not cached_match:
-            
-                cached_match = get_matching(matching_hash)
-            
-                if cached_match:
-                    cached_match = cached_match["result"]
-                    matching_source = AnalysisSource.mongodb          
-            
-          
-
-            if cached_match:
-
-                result["matching"] =  {
-                    "mode": AnalysisMode.jd,
-                    "metadata": {
-                        "usage": {
-                            "model": "",
-                            "input_tokens": 0,
-                            "output_tokens": 0,
-                            "reasoning_tokens": 0,
-                            "total_tokens": 0,
-                            "latency_ms": 0,
-                        },
-                        "cached": True,
-                        "processing_time_ms": 0,
-                        "timestamp": datetime.now(UTC),
-                        "source": matching_source,
-                    },
-                    "result": cached_match,
-                }        
-                 
-                return save_and_return(result)
-
-
-            jd_result = match_resume_with_jd(
-                resume_text=cleaned_text,
-                job_description=job_description,
-            )
-
-            match_data = jd_result.model_dump()
-
-            cache_matching(
-                matching_hash,
-                match_data
-            )
-            save_matching(
-                {
-                    "matching_hash": matching_hash,
-                    "resume_hash": result["resume_hash"],
-                    "mode": "jd",
-                    "result": match_data
-                }
-            )
-
-            result["matching"] = {
-                "mode": AnalysisMode.jd,
-                "metadata": {
-                    "usage": {
-                        "model": "gemini-2.5-flash",
-                        "input_tokens": 0,
-                        "output_tokens": 0,
-                        "reasoning_tokens": 0,
-                        "total_tokens": 0,
-                        "latency_ms": 0,
-                    },
-                    "cached": False,
-                    "processing_time_ms": 0,
-                    "timestamp": datetime.now(UTC),
-                    "source": AnalysisSource.fresh,
-                },
-                "result": match_data,
-            }  
-            if result["source"] == AnalysisSource.fresh:
-                resume_document = copy.deepcopy(result)
-                resume_document.pop("matching", None)
-            
-                save_analysis(resume_document)
-            
-            
-            resume_cache = copy.deepcopy(result)
-            resume_cache.pop("matching", None)
-            
-            cache_analysis(
-                result["resume_hash"],
-                resume_cache
-            )
-            
-          
-            return save_and_return(result)
-
-        # -----------------------------
-        # Role Matching
-        # -----------------------------
-
-        if mode == AnalysisMode.role:
-
-            matching_hash = generate_matching_hash(
-                result["resume_hash"],
-                "role",
-                role
-            )
-            
-
-            cached_match = get_cached_matching(matching_hash)            
-
-            matching_source = AnalysisSource.redis
-            
-            
-            if not cached_match:
-            
-                cached_match = get_matching(matching_hash)
-            
-                if cached_match:
-                    cached_match = cached_match["result"]
-                    matching_source = AnalysisSource.mongodb
-
-            if cached_match:
-
-                result["matching"] =  {
-                        "mode": AnalysisMode.role,
-                        "metadata": {
-                            "usage": {
-                                "model": "",
-                                "input_tokens": 0,
-                                "output_tokens": 0,
-                                "reasoning_tokens": 0,
-                                "total_tokens": 0,
-                                "latency_ms": 0,
-                            },
-                            "cached": True,
-                            "processing_time_ms": 0,
-                            "timestamp": datetime.now(UTC),
-                            "source": matching_source,
-                        },
-                        "result": cached_match,
-                    }                
-                      
-               
-                return save_and_return(result)
-
-
-            role_result = match_resume_with_role(
-                resume_text=cleaned_text,
-                role=role,
-            )
-
-            match_data = role_result.model_dump()
-
-            cache_matching(
-                matching_hash,
-                match_data
-            )
-            save_matching(
-                {
-                    "matching_hash": matching_hash,
-                    "resume_hash": result["resume_hash"],
-                    "mode": "role",
-                    "result": match_data
-                }
-            )
-
-            result["matching"] = {
-                "mode": AnalysisMode.role,
-                "metadata": {
-                    "usage": {
-                        "model": "gemini-2.5-flash",
-                        "input_tokens": 0,
-                        "output_tokens": 0,
-                        "reasoning_tokens": 0,
-                        "total_tokens": 0,
-                        "latency_ms": 0,
-                    },
-                    "cached": False,
-                    "processing_time_ms": 0,
-                    "timestamp": datetime.now(UTC),
-                    "source": AnalysisSource.fresh,
-                },
-                "result": match_data,
-            }  
-            if result["source"] == AnalysisSource.fresh:
-                resume_document = copy.deepcopy(result)
-                resume_document.pop("matching", None)
-            
-                save_analysis(resume_document)
-            
-            
-            resume_cache = copy.deepcopy(result)
-            resume_cache.pop("matching", None)
-            
-            cache_analysis(
-                result["resume_hash"],
-                resume_cache
-            )
-           
-            return save_and_return(result)
         raise HTTPException(
-            status_code=400,
-            detail="Invalid analysis mode"
+            status_code=500,
+            detail=f"Failed to process resume: {str(e)}"
         )
+
     finally:
 
         if temp_file_path and os.path.exists(temp_file_path):
             os.remove(temp_file_path)
-
-@router.get("/{resume_hash}")
-def get_resume_analysis(resume_hash: str,mode: str = "resume"):
     
-    result = get_analysis_by_hash(resume_hash)   
+@router.get("/job/{job_id}")
+def get_job_status(job_id: str):
 
-    if not result:
+    job = get_job(job_id)
+
+    if not job:
         raise HTTPException(
             status_code=404,
-            detail="Analysis not found"
+            detail="Job not found"
         )
 
-    if mode != "resume":
-
-        matching_results = get_matching_by_resume_hash(
-            resume_hash
-        )
-    
-        for item in reversed(matching_results):
-    
-            if item["mode"] == mode:
-    
-                item.pop("_id", None)
-    
-                result["matching"] = item
-    
-                break
-
-    return result   
+    return job    

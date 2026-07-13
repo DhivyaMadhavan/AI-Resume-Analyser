@@ -1,110 +1,145 @@
+import time
+
 from google.genai import types
 
 from app.clients.gemini_client import client
-from app.models.analysis import AIAnalysis, LLMAnalysis, TokenUsage
-from app.prompts.resume_prompt import get_resume_prompt
-from app.utils.experience_calculator import calculate_experience
+from app.clients.groq_client import client as groq_client
 
-import time
-
-
-MODEL_NAME = "gemini-2.5-flash"
+PRIMARY_MODEL = "gemini-2.5-flash"
+FALLBACK_MODEL = "llama-3.3-70b-versatile"
 
 
-def analyze_with_llm(resume_text: str) -> LLMAnalysis:
-    """
-    Analyze resume using Gemini and return structured data.
-    """
-
-    start = time.perf_counter()
-    prompt = get_resume_prompt(resume_text)
+def call_llm(prompt: str, response_model):
 
     try:
-
-        response = client.models.generate_content(
-            model=MODEL_NAME,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=AIAnalysis,
-                temperature=0.2,
-            ),
+        return _call_gemini(
+            prompt,
+            response_model,
         )
-
-
-        usage = response.usage_metadata
-        elapsed_ms = round((time.perf_counter() - start) * 1000)
-
-
-        # Gemini response
-        analysis = AIAnalysis.model_validate_json(
-            response.text
-        )
-  
-        # Override Gemini experience calculation
-        experience = calculate_experience(
-            analysis.experience
-        )
-        
-        
-        analysis.experience_summary.total_months = (
-            experience["total_months"]
-        )
-
-        analysis.experience_summary.total_experience = (
-            experience["formatted"]
-        )
-        analysis.experience_summary.it_months = (
-            experience["it_months"]
-        )
-
-        analysis.experience_summary.non_it_months = (
-            experience["non_it_months"]
-        )
-
-
-        analysis.experience_summary.it_experience = (
-            experience["it_formatted"]
-        )
-
-        analysis.experience_summary.non_it_experience = (
-            experience["non_it_formatted"]
-        )
-
-
-        return LLMAnalysis(
-            analysis=analysis,
-
-            usage=TokenUsage(
-                model=MODEL_NAME,
-                input_tokens=getattr(
-                    usage,
-                    "prompt_token_count",
-                    0
-                ),
-                output_tokens=getattr(
-                    usage,
-                    "candidates_token_count",
-                    0
-                ),
-                reasoning_tokens=getattr(
-                    usage,
-                    "thoughts_token_count",
-                    0
-                ),
-                total_tokens=getattr(
-                    usage,
-                    "total_token_count",
-                    0
-                ),
-                latency_ms=elapsed_ms
-            ),
-
-            prompt=prompt
-        )
-
 
     except Exception as e:
-        raise RuntimeError(
-            f"Gemini analysis failed: {e}"
+
+        print(f"\nGemini failed:\n{e}")
+
+        print("Switching to Groq...\n")
+
+        return _call_groq(
+            prompt,
+            response_model,
         )
+
+
+def _call_gemini(prompt, response_model):
+
+    start = time.perf_counter()
+
+    response = client.models.generate_content(
+        model=PRIMARY_MODEL,
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=response_model,
+            temperature=0.2,
+        ),
+    )
+
+    elapsed = round((time.perf_counter() - start) * 1000)
+
+    print(f"Gemini took {elapsed} ms")
+
+    usage = response.usage_metadata
+
+    parsed = response_model.model_validate_json(
+        response.text
+    )
+
+    return parsed, {
+        "provider": "gemini",
+        "model": PRIMARY_MODEL,
+        "fallback_used": False,
+        "latency_ms": elapsed,
+        "input_tokens": getattr(
+            usage,
+            "prompt_token_count",
+            0,
+        ),
+        "output_tokens": getattr(
+            usage,
+            "candidates_token_count",
+            0,
+        ),
+        "reasoning_tokens": getattr(
+            usage,
+            "thoughts_token_count",
+            0,
+        ),
+        "total_tokens": getattr(
+            usage,
+            "total_token_count",
+            0,
+        ),
+    }
+
+
+def _call_groq(prompt, response_model):
+
+    start = time.perf_counter()
+
+    response = groq_client.chat.completions.create(
+        model=FALLBACK_MODEL,
+        temperature=0.2,
+        messages=[
+            {
+                "role": "system",
+                "content":
+                "Return ONLY valid JSON. "
+                "No markdown. "
+                "No explanations."
+            },
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ],
+    )
+
+    elapsed = round((time.perf_counter() - start) * 1000)
+
+    print(f"Groq took {elapsed} ms")
+
+    text = response.choices[0].message.content
+
+    text = (
+        text.replace("```json", "")
+        .replace("```", "")
+        .strip()
+    )
+
+    parsed = response_model.model_validate_json(
+        text
+    )
+
+    usage = response.usage
+
+    return parsed, {
+        "provider": "groq",
+        "model": FALLBACK_MODEL,
+        "fallback_used": True,
+        "latency_ms": elapsed,
+        "input_tokens": getattr(
+            usage,
+            "prompt_tokens",
+            0,
+        ),
+        "output_tokens": getattr(
+            usage,
+            "completion_tokens",
+            0,
+        ),
+        "reasoning_tokens": 0,
+        "total_tokens": getattr(
+            usage,
+            "total_tokens",
+            0,
+        ),
+    }

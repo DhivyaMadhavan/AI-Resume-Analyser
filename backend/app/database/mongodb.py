@@ -10,3 +10,4 @@ db = client[settings.DATABASE_NAME]
 
 resume_collection = db["resume_analysis"]
 matching_collection = db["jd_matching"]
+jobs_collection = db["jobs"]

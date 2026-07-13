@@ -53,7 +53,9 @@ class Certification(BaseModel):
     issuer: Optional[str] = None
 
 class TokenUsage(BaseModel):
-    model: str
+    provider: str
+    model: str    
+    fallback_used: bool = False
     input_tokens: int = 0
     output_tokens: int = 0
     reasoning_tokens: int = 0

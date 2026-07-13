@@ -1,0 +1,63 @@
+{
+    "candidate": {
+        "summary": "Third-year Electronics and Communication Engineering student with nearly one year of tutoring experience, passionate about teaching and creating a positive learning environment."
+    },
+    "skills": [
+        "Core subjects and Languages",
+        "Good Communication Skills",
+        "Lesson Planning",
+        "Student Mentoring",
+        "Time Management",
+        "Patience and Adaptability",
+        "Tamil",
+        "English",
+        "Hindi"
+    ],
+    "education": [
+        {
+            "degree": "Bachelor of Engineering (B.E.)",
+            "institution": "Not mentioned",
+            "year": "2024 - Till date"
+        },
+        {
+            "degree": "Higher Secondary (Class XII)",
+            "institution": "Sitadevi Garodia Hindu Vidhyalaya, East Tambaram",
+            "year": "2023 - 2024"
+        },
+        {
+            "degree": "Secondary School (Class X)",
+            "institution": "Sitadevi Garodia Hindu Vidhyalaya, East Tambaram",
+            "year": "2021 - 2022"
+        }
+    ],
+    "experience": [
+        {
+            "company": "Not mentioned",
+            "designation": "Private Tutor",
+            "start_date": "Not mentioned",
+            "end_date": "Not mentioned"
+        }
+    ],
+    "projects": [],
+    "certifications": [],
+    "strengths": [
+        "Passionate about teaching",
+        "Effective lesson planning",
+        "Good communication skills"
+    ],
+    "improvements": [
+        "Missing concrete metrics or quantifiable results in tutoring experience",
+        "Lack of technical skills mentioned",
+        "No mention of relevant projects or certifications",
+        "No links to LinkedIn or GitHub profiles",
+        "Insufficient information about the company or institution where tutoring experience was gained"
+    ],
+    "experience_summary": {
+        "total_months": 12,
+        "it_months": 0,
+        "non_it_months": 12,
+        "total_experience": "1 year",
+        "it_experience": "0 years",
+        "non_it_experience": "1 year"
+    }
+}

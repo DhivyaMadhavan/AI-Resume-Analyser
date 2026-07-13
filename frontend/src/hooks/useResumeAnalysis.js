@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { analyzeResume } from "../services/resumeService";
+import { 
+    analyzeResume,
+    getJobStatus
+} from "../services/resumeService";
 
 export default function useResumeAnalysis() {
 
@@ -10,6 +13,43 @@ export default function useResumeAnalysis() {
     const [loading, setLoading] = useState(false);
 
     const [error, setError] = useState("");
+
+    const waitForJobCompletion = async(jobId)=>{
+
+        while(true){
+
+            const job = await getJobStatus(jobId);
+
+
+            console.log(
+                "JOB STATUS:",
+                job.status
+            );
+
+
+            if(job.status === "completed"){
+
+                return job.result;
+
+            }
+
+
+            if(job.status === "failed"){
+
+                throw new Error(
+                    job.error || "Analysis failed"
+                );
+
+            }
+
+
+            await new Promise(
+                resolve => setTimeout(resolve,2000)
+            );
+
+        }
+
+    };
 
     const analyze = async ({
         file,
@@ -48,12 +88,25 @@ export default function useResumeAnalysis() {
 
             setLoading(true);
 
-            const result = await analyzeResume(
+            const uploadResponse = await analyzeResume(
                 file,
                 mode,
                 jobDescription,
                 role
             );
+
+
+            console.log(
+                "JOB CREATED:",
+                uploadResponse.job_id
+            );
+
+
+
+            const result = await waitForJobCompletion(
+                uploadResponse.job_id
+            );
+
             console.log("========== Resume Analysis ==========");
             console.log("Resume Source :", result.source);
             console.log("Resume Hash   :", result.resume_hash);
@@ -67,9 +120,10 @@ export default function useResumeAnalysis() {
             console.log("====================================");
             
             navigate(`/dashboard/${result.resume_hash}`, {
-              state: {
-                mode: mode,
-              },
+                state: {
+                    mode: mode,
+                    analysisResult: result
+                },
             });
 
         }

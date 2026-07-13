@@ -4,6 +4,7 @@ from app.services.mongo_service import save_analysis, get_analysis_by_hash
 from app.services.analysis_service import analyze_resume
 from app.models.enums import AnalysisSource
 import copy
+import time
 
 
 def process_resume(filename: str, cleaned_text: str) -> dict:
@@ -31,9 +32,14 @@ def process_resume(filename: str, cleaned_text: str) -> dict:
 
         cache_analysis(resume_hash, resume_cache)
         return mongo_result
-
+    start_time = time.time()
     resume_analysis = analyze_resume(cleaned_text)
+    gemini_time = time.time() - start_time
 
+
+    print(
+        f"Gemini analysis time: {gemini_time:.2f} seconds"
+    )
     analysis = {
         "filename": filename,
         "resume_hash": resume_hash,

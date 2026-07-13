@@ -34,38 +34,53 @@ const Dashboard = () => {
 
   const analysisMode = location.state?.mode;
 
+  const initialResult = location.state?.analysisResult;
+
   useEffect(() => {
-    const fetchAnalysis = async () => {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/v1/resume/${resume_hash}?mode=${mode}`
-        );
 
-        
+    if(initialResult){
 
-        setResumeData(response.data);
-      } catch (err) {
-        console.error(err);
-        setError("Unable to load resume analysis.");
-      } finally {
+        setResumeData(initialResult);
         setLoading(false);
-      }
+        return;
+
+    }
+
+
+    const fetchAnalysis = async () => {
+
+        try {
+
+            const response = await axios.get(
+                `${import.meta.env.VITE_API_URL}/api/v1/resume/${resume_hash}?mode=${mode}`
+            );
+
+
+            setResumeData(response.data);
+
+
+        } catch(err){
+
+            console.error(err);
+
+            setError(
+                "Unable to load resume analysis."
+            );
+
+        }
+        finally{
+
+            setLoading(false);
+
+        }
+
     };
 
+
     fetchAnalysis();
-  }, [resume_hash]);
 
-  if (loading) {
-    return <Loader />;
-  }
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-red-600">
-        {error}
-      </div>
-    );
-  }
+}, [resume_hash]);
 
   const analysis = resumeData?.analysis;
   const matching = resumeData?.matching;
@@ -110,7 +125,7 @@ const Dashboard = () => {
           <ATSCard analysis={analysis} />
         </div>
 
-        {analysisMode !== "resume" && matching?.mode && (
+        {matching?.mode && (
           <div className="break-inside-avoid bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
             <div className="break-inside-avoid bg-yellow-100 p-5 rounded-xl">             
   

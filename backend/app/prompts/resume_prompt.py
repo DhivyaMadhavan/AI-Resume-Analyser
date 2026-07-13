@@ -34,44 +34,43 @@ If the classification between IT and Non-IT cannot be determined confidently, cl
 ### REQUIRED OUTPUT FORMAT:
 You must return your entire response as a single, valid JSON object. Do not include markdown code blocks or conversational text. Use this exact schema format:
 
-{{
-    "summary": "...",
-    "skills": ["...", "..."],
-    "education": [
-        {{
-            "degree": "...",
-            "institution": "...",
-            "year": "..."
-        }}
-    ],
-    "experience": [
-        {{
-            "company": "...",
-            "designation": "...",
-            "start_date": "...",
-            "end_date": "..."
-        }}
-    ],
-    "projects": [],
-    "certifications": [],
-    "strengths": ["...", "..."],
-    "areas_for_improvement": [
-        "Missing clickable raw hyperlinks for listed platforms like LinkedIn and GitHub.",
-        "The DataForge Analytics section lacks quantifiable business impact metrics for the computer vision model integration."
-    ],
-    "recommendations": [
-        "Provide full web URL strings for portfolio links to ensure ATS systems don't flag them as missing text.",
-        "Quantify the scale or performance improvement metrics of the computer vision production models deployed at DataForge Analytics."
-    ],
-    "experience_summary": {{
-        "total_months": 0,
-        "it_months": 0,
-        "non_it_months": 0,
-        "total_experience": "",
-        "it_experience": "",
-        "non_it_experience": ""
-    }}
-}}
+            {{
+                "candidate":{{
+                "summary": "..."
+                }}
+                "skills": ["...", "..."],
+                "education": [
+                    {{
+                        "degree": "...",
+                        "institution": "...",
+                        "year": "..."
+                    }}
+                ],
+                "experience": [
+                    {{
+                        "company": "...",
+                        "designation": "...",
+                        "start_date": "...",
+                        "end_date": "..."
+                    }}
+                ],
+                "projects": [],
+                "certifications": [],
+                "strengths": ["...", "..."],
+                "improvements": [
+                    "Missing clickable raw hyperlinks for listed platforms like LinkedIn and GitHub.",
+                    "The DataForge Analytics section lacks quantifiable business impact metrics for the computer vision model integration."
+                ],    
+                "experience_summary": {{
+                    "total_months": 0,
+                    "it_months": 0,
+                    "non_it_months": 0,
+                    "total_experience": "",
+                    "it_experience": "",
+                    "non_it_experience": ""
+                    }}
+                
+            }}
 
 Resume:
 {resume_text}
