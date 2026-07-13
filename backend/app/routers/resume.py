@@ -139,18 +139,21 @@ async def upload_resume(
         # -----------------------------
 
         if mode == AnalysisMode.resume:
-            resume_document = copy.deepcopy(result)
-            resume_document.pop("matching", None)
-            
-            save_analysis(resume_document)           
 
+            if result["source"] == AnalysisSource.fresh:
+                resume_document = copy.deepcopy(result)
+                resume_document.pop("matching", None)
+        
+                save_analysis(resume_document)
+        
             resume_cache = copy.deepcopy(result)
             resume_cache.pop("matching", None)
-            
+        
             cache_analysis(
                 result["resume_hash"],
                 resume_cache
             )
+        
             return save_and_return(result)
 
         # -----------------------------
@@ -242,10 +245,11 @@ async def upload_resume(
                 },
                 "result": match_data,
             }  
-            resume_document = copy.deepcopy(result)
-            resume_document.pop("matching", None)
+            if result["source"] == AnalysisSource.fresh:
+                resume_document = copy.deepcopy(result)
+                resume_document.pop("matching", None)
             
-            save_analysis(resume_document)
+                save_analysis(resume_document)
             
             
             resume_cache = copy.deepcopy(result)
@@ -348,10 +352,11 @@ async def upload_resume(
                 },
                 "result": match_data,
             }  
-            resume_document = copy.deepcopy(result)
-            resume_document.pop("matching", None)
+            if result["source"] == AnalysisSource.fresh:
+                resume_document = copy.deepcopy(result)
+                resume_document.pop("matching", None)
             
-            save_analysis(resume_document)
+                save_analysis(resume_document)
             
             
             resume_cache = copy.deepcopy(result)
