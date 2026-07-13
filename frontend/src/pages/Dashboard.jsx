@@ -112,9 +112,7 @@ const Dashboard = () => {
 
         {analysisMode !== "resume" && matching?.mode && (
           <div className="break-inside-avoid bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <div className="break-inside-avoid bg-yellow-100 p-5 rounded-xl">
-              <p>Mode: {String(matching?.mode)}</p>
-              <p>Has Result: {String(!!matching?.result)}</p>
+            <div className="break-inside-avoid bg-yellow-100 p-5 rounded-xl">             
   
               {matching.mode === "jd" && (
                 <JDMatchCard matching={matching} />
