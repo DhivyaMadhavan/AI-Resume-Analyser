@@ -1,11 +1,13 @@
 from datetime import datetime, timezone
 from app.database.mongodb import resume_collection
-
+import traceback
 def save_analysis(document: dict):
     """
     Save or update resume analysis.
     """
-
+    print("\n========== save_analysis CALLED ==========")
+    print("Source:", document.get("source"))
+    traceback.print_stack(limit=8)
     now = datetime.now(timezone.utc)
 
     # Make a copy so original result is not modified
